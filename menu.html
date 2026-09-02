@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propigestion - Gestión del Menú</title>
+  
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter & Outfit -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* VARIABLES DE TEMA (MODO OSCURO POR DEFECTO) */
+    :root[data-theme="dark"] {
+      --bg-main: #0b0f19;
+      --bg-card: rgba(18, 26, 43, 0.75);
+      --bg-input: rgba(0, 0, 0, 0.3);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f2fe;
+      --accent-blue: #4facfe;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --header-bg: rgba(11, 15, 25, 0.85);
+      --sidebar-bg: rgba(11, 15, 25, 0.95);
+      --row-hover: rgba(255, 255, 255, 0.04);
+      --shadow-color: rgba(0, 0, 0, 0.4);
+    }
+
+    /* VARIABLES MODO CLARO */
+    :root[data-theme="light"] {
+      --bg-main: #f1f5f9;
+      --bg-card: #ffffff;
+      --bg-input: #f8fafc;
+      --border-card: #e2e8f0;
+      --accent-cyan: #0284c7;
+      --accent-blue: #2563eb;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --header-bg: rgba(255, 255, 255, 0.9);
+      --sidebar-bg: #ffffff;
+      --row-hover: #f8fafc;
+      --shadow-color: rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ENCABEZADO SUPERIOR PARA DESKTOPS */
+    header {
+      background: var(--header-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-card);
+      padding: 0.8rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 500;
+      box-shadow: 0 4px 20px var(--shadow-color);
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .hamburger-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger-btn:hover {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #fff;
+      box-shadow: 0 0 15px rgba(2, 132, 199, 0.4);
+      border-color: transparent;
+    }
+
+    /* ISOLOGO PROPIGESTION CON "P" ILUMINADA */
+    .logo-box {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .logo-p {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #0b0f19;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.6);
+      position: relative;
+    }
+
+    .logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+    }
+
+    .logo-text span {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* BOTÓN SWITCH DE TEMA CLARO/OSCURO */
+    .theme-toggle-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      padding: 0.6rem 1.2rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--accent-cyan);
+    }
+
+    /* SIDEBAR / MENÚ LATERAL */
+    .sidebar-menu {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-card);
+      transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-menu.active {
+      left: 0;
+    }
+
+    .sidebar-header {
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-card);
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .menu-list {
+      list-style: none;
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .menu-item a {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1.2rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    .menu-item a:hover {
+      background: var(--row-hover);
+      color: var(--text-main);
+    }
+
+    .menu-item a i {
+      width: 24px;
+      text-align: center;
+      color: var(--accent-cyan);
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      z-index: 999;
+    }
+
+    .sidebar-overlay.active {
+      display: block;
+    }
+
+    /* CENTRADO PROFESIONAL PC */
+    .container {
+      max-width: 1200px;
+      margin: 2.5rem auto;
+      padding: 0 2rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px var(--shadow-color);
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .card-title i {
+      color: var(--accent-cyan);
+    }
+
+    /* FORMULARIO ADAPTADO */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 220px;
+      gap: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      position: relative;
+    }
+
+    .input-group label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .input-control {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .input-control:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    /* SELECTOR DE ÍCONOS DESPLEGABLE (DROPDOWN) */
+    .icon-dropdown-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .icon-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      max-height: 220px;
+      overflow-y: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      margin-top: 0.4rem;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 10px 25px var(--shadow-color);
+      padding: 0.5rem;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .icon-dropdown-menu.active {
+      display: grid;
+    }
+
+    .icon-option-item {
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: var(--text-muted);
+    }
+
+    .icon-option-item:hover {
+      background: var(--row-hover);
+      color: var(--accent-cyan);
+      border-color: var(--border-card);
+    }
+
+    /* BOTÓN DE GUARDADO */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #fff;
+      border: none;
+      padding: 0.8rem 1.8rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    /* TABLA ARRASTRABLE (DRAG AND DROP) */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 0.6rem;
+    }
+
+    th {
+      padding: 1rem;
+      text-align: left;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-card);
+    }
+
+    tbody tr {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      cursor: grab;
+    }
+
+    tbody tr.dragging {
+      opacity: 0.4;
+      cursor: grabbing;
+    }
+
+    tbody tr:hover {
+      background: var(--row-hover);
+    }
+
+    td {
+      padding: 1rem;
+      color: var(--text-main);
+      font-size: 0.95rem;
+    }
+
+    td.drag-handle {
+      width: 40px;
+      text-align: center;
+      color: var(--text-muted);
+      cursor: grab;
+    }
+
+    .badge-url {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--accent-cyan);
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border-card);
+      background: var(--bg-input);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-icon.edit:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+    .btn-icon.delete:hover { color: #ef4444; border-color: #ef4444; }
+
+    /* MODAL DE EDICIÓN */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 50px var(--shadow-color);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER PROFESIONAL DESKTOP -->
+  <header>
+    <div class="brand-container">
+      <button id="hamburger-btn" class="hamburger-btn">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="logo-box">
+        <div class="logo-p">P</div>
+        <div class="logo-text">Propi<span>gestion</span></div>
+      </div>
+    </div>
+
+    <!-- CONTROL DE TEMA CLARO / OSCURO -->
+    <button id="theme-toggle" class="theme-toggle-btn">
+      <i class="fas fa-moon" id="theme-icon"></i>
+      <span id="theme-text">Modo Oscuro</span>
+    </button>
+  </header>
+
+  <!-- SIDEBAR LATERAL -->
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
+  <nav id="sidebar-menu" class="sidebar-menu"></nav>
+
+  <!-- CENTRADO EN PANTALLA GENERAL -->
+  <main class="container">
+    
+    <!-- REGISTRO CON DESPLEGABLE DE ÍCONOS -->
+    <div class="card">
+      <div class="card-title">
+        <i class="fas fa-plus-circle"></i> Agregar Nueva Página al Menú
+      </div>
+
+      <form id="menu-form">
+        <div class="form-grid">
+          <div class="input-group">
+            <label>Nombre de la Vista</label>
+            <input type="text" id="nombre" class="input-control" placeholder="Ej. Clientes" required>
+          </div>
+
+          <div class="input-group">
+            <label>Redirección (URL)</label>
+            <input type="text" id="url" class="input-control" placeholder="Ej. clientes.html" required>
+          </div>
+
+          <!-- SELECTOR DESPLEGABLE DE ÍCONOS -->
+          <div class="input-group">
+            <label>Seleccionar Ícono</label>
+            <div id="icon-dropdown-btn" class="icon-dropdown-btn">
+              <span><i id="selected-icon-preview" class="fas fa-chart-line"></i> Seleccionar</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div id="icon-dropdown-menu" class="icon-dropdown-menu">
+              <!-- Íconos inyectados dinámicamente -->
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary">
+          <i class="fas fa-save"></i> Guardar Página
+        </button>
+      </form>
+    </div>
+
+    <!-- LISTADO CON ARRASTRE PARA REORDENAR -->
+    <div class="card">
+      <div class="card-title">
+        <i class="fas fa-arrows-up-down"></i> Estructura y Reordenamiento
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+        <i class="fas fa-info-circle"></i> Mantén presionada y arrastra cualquier fila arriba o abajo para ajustar su posición en el menú.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px;"></th>
+            <th>Ícono</th>
+            <th>Nombre Vista</th>
+            <th>URL / Redirección</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="menu-table-body">
+          <!-- Filas con Drag and Drop -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- MODAL DE EDICIÓN -->
+  <div id="edit-modal" class="modal">
+    <div class="modal-content">
+      <div class="card-title">
+        <i class="fas fa-pen-to-square"></i> Editar Página del Menú
+      </div>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id">
+        <div class="input-group" style="margin-bottom: 1rem;">
+          <label>Nombre de la Vista</label>
+          <input type="text" id="edit-nombre" class="input-control" required>
+        </div>
+        <div class="input-group" style="margin-bottom: 1.5rem;">
+          <label>Redirección (URL)</label>
+          <input type="text" id="edit-url" class="input-control" required>
+        </div>
+        
+        <div style="display: flex; gap: 0.8rem; justify-content: flex-end;">
+          <button type="button" class="btn-icon" onclick="closeEditModal()" style="width: auto; padding: 0.6rem 1rem;">Cancelar</button>
+          <button type="submit" class="btn-primary">Actualizar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- LÓGICA JAVASCRIPT INTEGRADA -->
+  <script>
+    // Catálogo de Íconos para la aplicación
+    const availableIcons = [
+      "fas fa-chart-line", "fas fa-users", "fas fa-hand-holding-usd", 
+      "fas fa-file-invoice-dollar", "fas fa-calculator", "fas fa-wallet",
+      "fas fa-piggy-bank", "fas fa-shield-halved", "fas fa-chart-pie",
+      "fas fa-gear", "fas fa-user-gear", "fas fa-bars-staggered",
+      "fas fa-bell", "fas fa-envelope", "fas fa-folder-open", "fas fa-house"
+    ];
+
+    let selectedIconClass = availableIcons[0];
+
+    const defaultMenuItems = [
+      { id: 1, nombre: "Dashboard", url: "index.html", icono: "fas fa-chart-line" },
+      { id: 2, nombre: "Clientes", url: "clientes.html", icono: "fas fa-users" },
+      { id: 3, nombre: "Préstamos", url: "prestamos.html", icono: "fas fa-hand-holding-usd" },
+      { id: 4, nombre: "Configuración Menú", url: "menu.html", icono: "fas fa-bars-staggered" }
+    ];
+
+    function getMenuItems() {
+      const data = localStorage.getItem("propigestion_menu");
+      if (!data) {
+        localStorage.setItem("propigestion_menu", JSON.stringify(defaultMenuItems));
+        return defaultMenuItems;
+      }
+      return JSON.parse(data);
+    }
+
+    function saveMenuItems(items) {
+      localStorage.setItem("propigestion_menu", JSON.stringify(items));
+    }
+
+    // GESTIÓN DEL TEMA CLARO / OSCURO
+    function initTheme() {
+      const currentTheme = localStorage.getItem("propigestion_theme") || "dark";
+      document.documentElement.setAttribute("data-theme", currentTheme);
+      updateThemeUI(currentTheme);
+    }
+
+    function updateThemeUI(theme) {
+      const icon = document.getElementById("theme-icon");
+      const text = document.getElementById("theme-text");
+
+      if (theme === "light") {
+        icon.className = "fas fa-sun";
+        text.innerText = "Modo Claro";
+      } else {
+        icon.className = "fas fa-moon";
+        text.innerText = "Modo Oscuro";
+      }
+    }
+
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+      const activeTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = activeTheme === "dark" ? "light" : "dark";
+      
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("propigestion_theme", newTheme);
+      updateThemeUI(newTheme);
+    });
+
+    // SELECTOR DE ÍCONOS DESPLEGABLE
+    function initIconDropdown() {
+      const dropdownBtn = document.getElementById("icon-dropdown-btn");
+      const dropdownMenu = document.getElementById("icon-dropdown-menu");
+      const previewIcon = document.getElementById("selected-icon-preview");
+
+      dropdownMenu.innerHTML = "";
+      availableIcons.forEach(icon => {
+        const item = document.createElement("div");
+        item.className = "icon-option-item";
+        item.innerHTML = `<i class="${icon}"></i>`;
+        item.onclick = (e) => {
+          e.stopPropagation();
+          selectedIconClass = icon;
+          previewIcon.className = icon;
+          dropdownMenu.classList.remove("active");
+        };
+        dropdownMenu.appendChild(item);
+      });
+
+      dropdownBtn.onclick = (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle("active");
+      };
+
+      document.addEventListener("click", () => dropdownMenu.classList.remove("active"));
+    }
+
+    // RENDERIZAR MENÚ LATERAL (SIDEBAR)
+    function renderSidebarMenu() {
+      const sidebar = document.getElementById("sidebar-menu");
+      const items = getMenuItems();
+
+      let html = `
+        <div class="sidebar-header">
+          <div class="logo-box">
+            <div class="logo-p">P</div>
+            <div class="logo-text">Propi<span>gestion</span></div>
+          </div>
+          <button id="close-btn" class="close-btn">&times;</button>
+        </div>
+        <ul class="menu-list">
+      `;
+
+      items.forEach(item => {
+        html += `
+          <li class="menu-item">
+            <a href="${item.url}">
+              <i class="${item.icono}"></i>
+              <span>${item.nombre}</span>
+            </a>
+          </li>
+        `;
+      });
+
+      html += `</ul>`;
+      sidebar.innerHTML = html;
+
+      const hamburgerBtn = document.getElementById("hamburger-btn");
+      const closeBtn = document.getElementById("close-btn");
+      const overlay = document.getElementById("sidebar-overlay");
+
+      function toggleMenu() {
+        sidebar.classList.toggle("active");
+        overlay.classList.toggle("active");
+      }
+
+      if (hamburgerBtn) hamburgerBtn.onclick = toggleMenu;
+      if (closeBtn) closeBtn.onclick = toggleMenu;
+      if (overlay) overlay.onclick = toggleMenu;
+    }
+
+    // RENDERIZAR TABLA CON DRAG AND DROP
+    function loadMenuTable() {
+      const items = getMenuItems();
+      const tbody = document.getElementById("menu-table-body");
+      tbody.innerHTML = "";
+
+      items.forEach((item, index) => {
+        const tr = document.createElement("tr");
+        tr.draggable = true;
+        tr.dataset.index = index;
+
+        tr.innerHTML = `
+          <td class="drag-handle"><i class="fas fa-grip-vertical"></i></td>
+          <td><i class="${item.icono}" style="color: var(--accent-cyan); font-size: 1.2rem;"></i></td>
+          <td><strong>${item.nombre}</strong></td>
+          <td><span class="badge-url">${item.url}</span></td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-icon edit" onclick="openEditModal(${item.id})">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button class="btn-icon delete" onclick="deleteMenuItem(${item.id})">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        `;
+
+        // Eventos Drag and Drop
+        tr.addEventListener("dragstart", handleDragStart);
+        tr.addEventListener("dragover", handleDragOver);
+        tr.addEventListener("drop", handleDrop);
+        tr.addEventListener("dragend", handleDragEnd);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // LÓGICA DE ARRASTRE
+    let dragSrcIndex = null;
+
+    function handleDragStart(e) {
+      dragSrcIndex = Number(this.dataset.index);
+      this.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    }
+
+    function handleDrop(e) {
+      e.stopPropagation();
+      const dropTargetIndex = Number(this.dataset.index);
+
+      if (dragSrcIndex !== null && dragSrcIndex !== dropTargetIndex) {
+        let items = getMenuItems();
+        const movedItem = items.splice(dragSrcIndex, 1)[0];
+        items.splice(dropTargetIndex, 0, movedItem);
+
+        saveMenuItems(items);
+        loadMenuTable();
+        renderSidebarMenu();
+      }
+    }
+
+    function handleDragEnd() {
+      this.classList.remove("dragging");
+    }
+
+    // AGREGAR NUEVA PÁGINA
+    document.getElementById("menu-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const items = getMenuItems();
+
+      const newItem = {
+        id: Date.now(),
+        nombre: document.getElementById("nombre").value,
+        url: document.getElementById("url").value,
+        icono: selectedIconClass
+      };
+
+      items.push(newItem);
+      saveMenuItems(items);
+
+      e.target.reset();
+      loadMenuTable();
+      renderSidebarMenu();
+    });
+
+    // MODAL EDICIÓN
+    function openEditModal(id) {
+      const items = getMenuItems();
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+
+      document.getElementById("edit-id").value = item.id;
+      document.getElementById("edit-nombre").value = item.nombre;
+      document.getElementById("edit-url").value = item.url;
+
+      document.getElementById("edit-modal").classList.add("active");
+    }
+
+    function closeEditModal() {
+      document.getElementById("edit-modal").classList.remove("active");
+    }
+
+    document.getElementById("edit-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = Number(document.getElementById("edit-id").value);
+      let items = getMenuItems();
+
+      items = items.map(item => {
+        if (item.id === id) {
+          return {
+            ...item,
+            nombre: document.getElementById("edit-nombre").value,
+            url: document.getElementById("edit-url").value
+          };
+        }
+        return item;
+      });
+
+      saveMenuItems(items);
+      closeEditModal();
+      loadMenuTable();
+      renderSidebarMenu();
+    });
+
+    // ELIMINAR OPCIÓN
+    function deleteMenuItem(id) {
+      let items = getMenuItems();
+      items = items.filter(item => item.id !== id);
+      saveMenuItems(items);
+      loadMenuTable();
+      renderSidebarMenu();
+    }
+
+    // INICIALIZACIÓN DE LA APLICACIÓN
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      initIconDropdown();
+      renderSidebarMenu();
+      loadMenuTable();
+    });
+  </script>
+</body>
+</html>
