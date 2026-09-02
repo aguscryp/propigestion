@@ -401,7 +401,7 @@
       position: relative;
       border: 2px dashed var(--border-card);
       border-radius: 14px;
-      padding: 1.2rem;
+      padding: 1rem;
       text-align: center;
       background: var(--bg-input);
       cursor: pointer;
@@ -421,9 +421,9 @@
 
     .preview-thumb {
       max-width: 100%;
-      max-height: 140px;
+      max-height: 120px;
       border-radius: 8px;
-      margin-top: 0.8rem;
+      margin-top: 0.6rem;
       display: none;
       object-fit: contain;
       border: 1px solid var(--border-card);
@@ -536,6 +536,14 @@
       align-items: center;
       justify-content: center;
       font-size: 1.1rem;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .avatar-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .client-card-info h4 {
@@ -593,9 +601,7 @@
       color: #0b0f19;
     }
 
-    /* =========================================================
-       VENTANA EMERGENTE PROFESIONAL (MODAL DE FICHA DE CLIENTE)
-       ========================================================= */
+    /* VENTANA EMERGENTE (MODAL FICHA CLIENTE) */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -675,6 +681,13 @@
       font-size: 2rem;
       font-weight: 800;
       color: var(--accent-cyan);
+      overflow: hidden;
+    }
+
+    .modal-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .modal-body {
@@ -833,13 +846,25 @@
             <input type="text" id="dni" class="input-control" placeholder="Ej. 35123456" required>
           </div>
 
+          <!-- CAMPO OPCIONAL: FOTO DE PERFIL DE LA PERSONA -->
           <div class="form-group">
-            <label>Foto de DNI (Opcional)</label>
+            <label>Foto de Perfil del Cliente (Opcional)</label>
             <div class="file-dropzone">
-              <i class="fas fa-cloud-arrow-up" style="font-size: 1.8rem; color: var(--accent-cyan); margin-bottom: 0.4rem;"></i>
+              <i class="fas fa-user-circle" style="font-size: 1.6rem; color: var(--accent-cyan); margin-bottom: 0.3rem;"></i>
+              <p style="font-size: 0.8rem; color: var(--text-muted);" id="dropzone-profile-text">Subir rostro / retrato</p>
+              <input type="file" id="foto-perfil" accept="image/*">
+              <img id="file-preview-profile" class="preview-thumb" alt="Vista previa perfil">
+            </div>
+          </div>
+
+          <!-- CAMPO OPCIONAL: FOTO DNI -->
+          <div class="form-group">
+            <label>Foto de DNI Documento (Opcional)</label>
+            <div class="file-dropzone">
+              <i class="fas fa-id-card" style="font-size: 1.6rem; color: var(--accent-cyan); margin-bottom: 0.3rem;"></i>
               <p style="font-size: 0.8rem; color: var(--text-muted);" id="dropzone-text">Cargar imagen del documento</p>
               <input type="file" id="foto-dni" accept="image/*">
-              <img id="file-preview" class="preview-thumb" alt="Vista previa">
+              <img id="file-preview" class="preview-thumb" alt="Vista previa DNI">
             </div>
           </div>
 
@@ -866,9 +891,7 @@
     </div>
   </main>
 
-  <!-- =========================================================
-       MODAL DE FICHA PROFESIONAL DEL CLIENTE
-       ========================================================= -->
+  <!-- MODAL DE FICHA PROFESIONAL DEL CLIENTE -->
   <div id="profile-modal-overlay" class="modal-overlay">
     <div class="profile-modal">
       <div class="modal-banner">
@@ -876,7 +899,7 @@
       </div>
       
       <div class="modal-profile-header">
-        <div class="modal-avatar" id="modal-initials">--</div>
+        <div class="modal-avatar" id="modal-avatar-container">--</div>
         <a id="modal-wsp-btn" href="#" target="_blank" class="btn-primary" style="width: auto; padding: 0.6rem 1.2rem; background: #25D366; color: #fff;">
           <i class="fab fa-whatsapp"></i> Chat WhatsApp
         </a>
@@ -914,7 +937,8 @@
     /* ESTADO Y DATOS */
     let clients = JSON.parse(localStorage.getItem("propigestion_clientes")) || [];
     let activeModalClientId = null;
-    let currentBase64Image = null;
+    let currentBase64Dni = null;
+    let currentBase64Profile = null;
 
     const defaultMenuItems = [
       { id: 1, nombre: "Dashboard", url: "index.html", icono: "fas fa-chart-line", subpaginas: [] },
@@ -1027,7 +1051,16 @@
       if (menuItem) menuItem.classList.toggle("open");
     }
 
-    /* RENDER Y METRICAS DE CLIENTES */
+    /* OBTENER AVATAR (FOTO DE PERFIL O INICIALES) */
+    function getAvatarHTML(client) {
+      if (client.fotoPerfil) {
+        return `<img src="${client.fotoPerfil}" alt="${client.nombre}">`;
+      }
+      const initials = client.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      return initials;
+    }
+
+    /* RENDER Y METRICAS */
     function saveClients() {
       localStorage.setItem("propigestion_clientes", JSON.stringify(clients));
       renderClientsGrid();
@@ -1060,14 +1093,12 @@
       }
 
       filtered.forEach(client => {
-        const initials = client.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-        
         const card = document.createElement("div");
         card.className = "client-card";
         card.innerHTML = `
           <div>
             <div class="client-card-header">
-              <div class="avatar-circle">${initials}</div>
+              <div class="avatar-circle">${getAvatarHTML(client)}</div>
               <div class="client-card-info">
                 <h4>${client.nombre}</h4>
                 <p><i class="fab fa-whatsapp" style="color:#25D366;"></i> ${client.wsp}</p>
@@ -1088,33 +1119,52 @@
       });
     }
 
-    /* MANEJO DE IMÁGENES DNI */
+    /* MANEJO DE IMÁGENES (DNI Y PERFIL) */
     document.getElementById("foto-dni").addEventListener("change", function(e) {
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = function(evt) {
-          currentBase64Image = evt.target.result;
-          showPreview(currentBase64Image);
+          currentBase64Dni = evt.target.result;
+          showPreview("file-preview", "dropzone-text", currentBase64Dni, "Imagen cargada");
         };
         reader.readAsDataURL(file);
       }
     });
 
-    function showPreview(src) {
-      const preview = document.getElementById("file-preview");
+    document.getElementById("foto-perfil").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          currentBase64Profile = evt.target.result;
+          showPreview("file-preview-profile", "dropzone-profile-text", currentBase64Profile, "Foto cargada");
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function showPreview(imgId, textId, src, msg) {
+      const preview = document.getElementById(imgId);
       preview.src = src;
       preview.style.display = "block";
-      document.getElementById("dropzone-text").innerText = "Imagen cargada";
+      document.getElementById(textId).innerText = msg;
     }
 
-    function resetPreview() {
-      const preview = document.getElementById("file-preview");
-      preview.src = "";
-      preview.style.display = "none";
+    function resetPreviews() {
+      const pDni = document.getElementById("file-preview");
+      pDni.src = "";
+      pDni.style.display = "none";
       document.getElementById("dropzone-text").innerText = "Cargar imagen del documento";
-      currentBase64Image = null;
+      currentBase64Dni = null;
       document.getElementById("foto-dni").value = "";
+
+      const pProf = document.getElementById("file-preview-profile");
+      pProf.src = "";
+      pProf.style.display = "none";
+      document.getElementById("dropzone-profile-text").innerText = "Subir rostro / retrato";
+      currentBase64Profile = null;
+      document.getElementById("foto-perfil").value = "";
     }
 
     /* GUARDAR CLIENTE */
@@ -1134,7 +1184,8 @@
               nombre,
               wsp,
               dni,
-              fotoDni: currentBase64Image || c.fotoDni
+              fotoDni: currentBase64Dni !== null ? currentBase64Dni : c.fotoDni,
+              fotoPerfil: currentBase64Profile !== null ? currentBase64Profile : c.fotoPerfil
             };
           }
           return c;
@@ -1145,7 +1196,8 @@
           nombre,
           wsp,
           dni,
-          fotoDni: currentBase64Image || null
+          fotoDni: currentBase64Dni || null,
+          fotoPerfil: currentBase64Profile || null
         };
         clients.unshift(newClient);
       }
@@ -1161,7 +1213,7 @@
       document.getElementById("form-icon").className = "fas fa-user-plus";
       document.getElementById("btn-submit").innerHTML = `<i class="fas fa-save"></i> Guardar Cliente`;
       document.getElementById("btn-cancel-edit").style.display = "none";
-      resetPreview();
+      resetPreviews();
     }
 
     document.getElementById("btn-cancel-edit").onclick = resetForm;
@@ -1172,8 +1224,7 @@
       const client = clients.find(c => c.id === id);
       if (!client) return;
 
-      const initials = client.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-      document.getElementById("modal-initials").innerText = initials;
+      document.getElementById("modal-avatar-container").innerHTML = getAvatarHTML(client);
       document.getElementById("modal-nombre").innerText = client.nombre;
       document.getElementById("modal-dni").innerText = client.dni;
       document.getElementById("modal-wsp").innerText = client.wsp;
@@ -1214,10 +1265,12 @@
       document.getElementById("btn-cancel-edit").style.display = "inline-block";
 
       if (client.fotoDni) {
-        currentBase64Image = client.fotoDni;
-        showPreview(client.fotoDni);
-      } else {
-        resetPreview();
+        currentBase64Dni = client.fotoDni;
+        showPreview("file-preview", "dropzone-text", client.fotoDni, "Imagen cargada");
+      }
+      if (client.fotoPerfil) {
+        currentBase64Profile = client.fotoPerfil;
+        showPreview("file-preview-profile", "dropzone-profile-text", client.fotoPerfil, "Foto cargada");
       }
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
