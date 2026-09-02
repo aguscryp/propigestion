@@ -101,7 +101,6 @@
       border-color: transparent;
     }
 
-    /* ISOLOGO PROPIGESTION CON "P" ILUMINADA */
     .logo-box {
       display: flex;
       align-items: center;
@@ -138,7 +137,6 @@
       -webkit-text-fill-color: transparent;
     }
 
-    /* BOTÓN SWITCH DE TEMA CLARO/OSCURO */
     .theme-toggle-btn {
       background: var(--bg-input);
       border: 1px solid var(--border-card);
@@ -157,12 +155,12 @@
       border-color: var(--accent-cyan);
     }
 
-    /* SIDEBAR / MENÚ LATERAL */
+    /* SIDEBAR / MENÚ LATERAL CON ACORDEÓN */
     .sidebar-menu {
       position: fixed;
       top: 0;
-      left: -280px;
-      width: 280px;
+      left: -300px;
+      width: 300px;
       height: 100vh;
       background: var(--sidebar-bg);
       backdrop-filter: blur(20px);
@@ -171,6 +169,7 @@
       z-index: 1000;
       display: flex;
       flex-direction: column;
+      overflow-y: auto;
     }
 
     .sidebar-menu.active {
@@ -201,26 +200,80 @@
       gap: 0.5rem;
     }
 
-    .menu-item a {
+    .menu-item-btn {
+      width: 100%;
       display: flex;
       align-items: center;
-      gap: 1rem;
+      justify-content: space-between;
       padding: 0.85rem 1.2rem;
       color: var(--text-muted);
-      text-decoration: none;
+      background: transparent;
+      border: none;
       border-radius: 10px;
       font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 0.95rem;
     }
 
-    .menu-item a:hover {
+    .menu-item-btn:hover {
       background: var(--row-hover);
       color: var(--text-main);
     }
 
-    .menu-item a i {
+    .menu-item-btn-content {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .menu-item-btn i.main-icon {
       width: 24px;
       text-align: center;
       color: var(--accent-cyan);
+    }
+
+    .arrow-icon {
+      transition: transform 0.3s ease;
+      font-size: 0.8rem;
+    }
+
+    .menu-item.open .arrow-icon {
+      transform: rotate(180deg);
+    }
+
+    /* SUBMENÚ / ACORDEÓN */
+    .submenu-list {
+      list-style: none;
+      padding-left: 2.5rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .menu-item.open .submenu-list {
+      max-height: 500px;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+
+    .submenu-item a {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.6rem 1.2rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .submenu-item a:hover {
+      background: var(--row-hover);
+      color: var(--text-main);
     }
 
     .sidebar-overlay {
@@ -235,7 +288,7 @@
       display: block;
     }
 
-    /* CENTRADO PROFESIONAL PC */
+    /* CENTRADO GENERAL */
     .container {
       max-width: 1200px;
       margin: 2.5rem auto;
@@ -265,12 +318,16 @@
       color: var(--accent-cyan);
     }
 
-    /* FORMULARIO ADAPTADO */
+    /* FORMULARIO */
     .form-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 220px;
+      grid-template-columns: 1fr 1fr 1fr 180px;
       gap: 1.2rem;
       margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .form-grid { grid-template-columns: 1fr 1fr; }
     }
 
     .input-group {
@@ -300,7 +357,7 @@
       border-color: var(--accent-cyan);
     }
 
-    /* SELECTOR DE ÍCONOS DESPLEGABLE (DROPDOWN) */
+    /* SELECTOR DE ÍCONOS DESPLEGABLE */
     .icon-dropdown-btn {
       background: var(--bg-input);
       border: 1px solid var(--border-card);
@@ -355,7 +412,6 @@
       border-color: var(--border-card);
     }
 
-    /* BOTÓN DE GUARDADO */
     .btn-primary {
       background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
       color: #fff;
@@ -374,7 +430,7 @@
       opacity: 0.9;
     }
 
-    /* TABLA ARRASTRABLE (DRAG AND DROP) */
+    /* TABLA Y SUBFILAS (SUBPÁGINAS) */
     table {
       width: 100%;
       border-collapse: separate;
@@ -395,7 +451,10 @@
       background: var(--bg-card);
       border: 1px solid var(--border-card);
       border-radius: 12px;
-      cursor: grab;
+    }
+
+    tbody tr.subpage-row {
+      background: rgba(0, 0, 0, 0.15);
     }
 
     tbody tr.dragging {
@@ -408,7 +467,7 @@
     }
 
     td {
-      padding: 1rem;
+      padding: 0.8rem 1rem;
       color: var(--text-main);
       font-size: 0.95rem;
     }
@@ -418,6 +477,19 @@
       text-align: center;
       color: var(--text-muted);
       cursor: grab;
+    }
+
+    .subpage-indent {
+      padding-left: 2rem !important;
+      position: relative;
+    }
+
+    .subpage-indent::before {
+      content: "↳";
+      position: absolute;
+      left: 0.8rem;
+      color: var(--accent-cyan);
+      font-weight: bold;
     }
 
     .badge-url {
@@ -478,7 +550,7 @@
 </head>
 <body>
 
-  <!-- HEADER PROFESIONAL DESKTOP -->
+  <!-- HEADER -->
   <header>
     <div class="brand-container">
       <button id="hamburger-btn" class="hamburger-btn">
@@ -490,7 +562,6 @@
       </div>
     </div>
 
-    <!-- CONTROL DE TEMA CLARO / OSCURO -->
     <button id="theme-toggle" class="theme-toggle-btn">
       <i class="fas fa-moon" id="theme-icon"></i>
       <span id="theme-text">Modo Oscuro</span>
@@ -501,54 +572,60 @@
   <div id="sidebar-overlay" class="sidebar-overlay"></div>
   <nav id="sidebar-menu" class="sidebar-menu"></nav>
 
-  <!-- CENTRADO EN PANTALLA GENERAL -->
+  <!-- MAIN CONTAINER -->
   <main class="container">
     
-    <!-- REGISTRO CON DESPLEGABLE DE ÍCONOS -->
+    <!-- REGISTRO CON SOPORTE PARA SUBPÁGINAS -->
     <div class="card">
       <div class="card-title">
-        <i class="fas fa-plus-circle"></i> Agregar Nueva Página al Menú
+        <i class="fas fa-plus-circle"></i> Agregar Nueva Página / Subpágina
       </div>
 
       <form id="menu-form">
         <div class="form-grid">
           <div class="input-group">
             <label>Nombre de la Vista</label>
-            <input type="text" id="nombre" class="input-control" placeholder="Ej. Clientes" required>
+            <input type="text" id="nombre" class="input-control" placeholder="Ej. Reportes" required>
           </div>
 
           <div class="input-group">
             <label>Redirección (URL)</label>
-            <input type="text" id="url" class="input-control" placeholder="Ej. clientes.html" required>
+            <input type="text" id="url" class="input-control" placeholder="Ej. reportes.html" required>
           </div>
 
-          <!-- SELECTOR DESPLEGABLE DE ÍCONOS -->
+          <!-- SELECCIONAR MENÚ PADRE (ACORDEÓN) -->
+          <div class="input-group">
+            <label>Pertenencia (Menú Padre)</label>
+            <select id="parent-id" class="input-control">
+              <option value="">-- Menú Principal (Sin padre) --</option>
+            </select>
+          </div>
+
+          <!-- SELECTOR DE ÍCONOS -->
           <div class="input-group">
             <label>Seleccionar Ícono</label>
             <div id="icon-dropdown-btn" class="icon-dropdown-btn">
-              <span><i id="selected-icon-preview" class="fas fa-chart-line"></i> Seleccionar</span>
+              <span><i id="selected-icon-preview" class="fas fa-chart-line"></i> Ícono</span>
               <i class="fas fa-chevron-down"></i>
             </div>
-            <div id="icon-dropdown-menu" class="icon-dropdown-menu">
-              <!-- Íconos inyectados dinámicamente -->
-            </div>
+            <div id="icon-dropdown-menu" class="icon-dropdown-menu"></div>
           </div>
         </div>
 
         <button type="submit" class="btn-primary">
-          <i class="fas fa-save"></i> Guardar Página
+          <i class="fas fa-save"></i> Guardar Opción
         </button>
       </form>
     </div>
 
-    <!-- LISTADO CON ARRASTRE PARA REORDENAR -->
+    <!-- ESTRUCTURA Y REORDENAMIENTO -->
     <div class="card">
       <div class="card-title">
-        <i class="fas fa-arrows-up-down"></i> Estructura y Reordenamiento
+        <i class="fas fa-layer-group"></i> Estructura y Subpáginas
       </div>
 
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-        <i class="fas fa-info-circle"></i> Mantén presionada y arrastra cualquier fila arriba o abajo para ajustar su posición en el menú.
+        <i class="fas fa-info-circle"></i> Puedes ordenar los menús principales mediante arrastre (Drag & Drop). Las subpáginas se anidan dentro de su menú correspondiente.
       </p>
 
       <table>
@@ -561,21 +638,21 @@
             <th>Acciones</th>
           </tr>
         </thead>
-        <tbody id="menu-table-body">
-          <!-- Filas con Drag and Drop -->
-        </tbody>
+        <tbody id="menu-table-body"></tbody>
       </table>
     </div>
   </main>
 
-  <!-- MODAL DE EDICIÓN -->
+  <!-- MODAL EDICIÓN -->
   <div id="edit-modal" class="modal">
     <div class="modal-content">
       <div class="card-title">
-        <i class="fas fa-pen-to-square"></i> Editar Página del Menú
+        <i class="fas fa-pen-to-square"></i> Editar Opción
       </div>
       <form id="edit-form">
         <input type="hidden" id="edit-id">
+        <input type="hidden" id="edit-parent-id">
+        
         <div class="input-group" style="margin-bottom: 1rem;">
           <label>Nombre de la Vista</label>
           <input type="text" id="edit-nombre" class="input-control" required>
@@ -593,9 +670,7 @@
     </div>
   </div>
 
-  <!-- LÓGICA JAVASCRIPT INTEGRADA -->
   <script>
-    // Catálogo de Íconos para la aplicación
     const availableIcons = [
       "fas fa-chart-line", "fas fa-users", "fas fa-hand-holding-usd", 
       "fas fa-file-invoice-dollar", "fas fa-calculator", "fas fa-wallet",
@@ -607,10 +682,19 @@
     let selectedIconClass = availableIcons[0];
 
     const defaultMenuItems = [
-      { id: 1, nombre: "Dashboard", url: "index.html", icono: "fas fa-chart-line" },
-      { id: 2, nombre: "Clientes", url: "clientes.html", icono: "fas fa-users" },
-      { id: 3, nombre: "Préstamos", url: "prestamos.html", icono: "fas fa-hand-holding-usd" },
-      { id: 4, nombre: "Configuración Menú", url: "menu.html", icono: "fas fa-bars-staggered" }
+      { id: 1, nombre: "Dashboard", url: "index.html", icono: "fas fa-chart-line", subpaginas: [] },
+      { 
+        id: 2, 
+        nombre: "Clientes", 
+        url: "clientes.html", 
+        icono: "fas fa-users",
+        subpaginas: [
+          { id: 21, nombre: "Lista de Clientes", url: "clientes-lista.html", icono: "fas fa-users" },
+          { id: 22, nombre: "Solicitudes", url: "solicitudes.html", icono: "fas fa-folder-open" }
+        ] 
+      },
+      { id: 3, nombre: "Préstamos", url: "prestamos.html", icono: "fas fa-hand-holding-usd", subpaginas: [] },
+      { id: 4, nombre: "Configuración Menú", url: "menu.html", icono: "fas fa-bars-staggered", subpaginas: [] }
     ];
 
     function getMenuItems() {
@@ -626,7 +710,7 @@
       localStorage.setItem("propigestion_menu", JSON.stringify(items));
     }
 
-    // GESTIÓN DEL TEMA CLARO / OSCURO
+    /* SISTEMA DE TEMA */
     function initTheme() {
       const currentTheme = localStorage.getItem("propigestion_theme") || "dark";
       document.documentElement.setAttribute("data-theme", currentTheme);
@@ -636,7 +720,6 @@
     function updateThemeUI(theme) {
       const icon = document.getElementById("theme-icon");
       const text = document.getElementById("theme-text");
-
       if (theme === "light") {
         icon.className = "fas fa-sun";
         text.innerText = "Modo Claro";
@@ -649,13 +732,12 @@
     document.getElementById("theme-toggle").addEventListener("click", () => {
       const activeTheme = document.documentElement.getAttribute("data-theme");
       const newTheme = activeTheme === "dark" ? "light" : "dark";
-      
       document.documentElement.setAttribute("data-theme", newTheme);
       localStorage.setItem("propigestion_theme", newTheme);
       updateThemeUI(newTheme);
     });
 
-    // SELECTOR DE ÍCONOS DESPLEGABLE
+    /* DROPDOWN ÍCONOS */
     function initIconDropdown() {
       const dropdownBtn = document.getElementById("icon-dropdown-btn");
       const dropdownMenu = document.getElementById("icon-dropdown-menu");
@@ -683,7 +765,7 @@
       document.addEventListener("click", () => dropdownMenu.classList.remove("active"));
     }
 
-    // RENDERIZAR MENÚ LATERAL (SIDEBAR)
+    /* RENDER DE SIDEBAR CON ACORDEÓN */
     function renderSidebarMenu() {
       const sidebar = document.getElementById("sidebar-menu");
       const items = getMenuItems();
@@ -700,14 +782,42 @@
       `;
 
       items.forEach(item => {
-        html += `
-          <li class="menu-item">
-            <a href="${item.url}">
-              <i class="${item.icono}"></i>
-              <span>${item.nombre}</span>
-            </a>
-          </li>
-        `;
+        const hasSub = item.subpaginas && item.subpaginas.length > 0;
+
+        if (hasSub) {
+          html += `
+            <li class="menu-item" id="menu-item-${item.id}">
+              <button class="menu-item-btn" onclick="toggleAcordeon(${item.id})">
+                <div class="menu-item-btn-content">
+                  <i class="${item.icono} main-icon"></i>
+                  <span>${item.nombre}</span>
+                </div>
+                <i class="fas fa-chevron-down arrow-icon"></i>
+              </button>
+              <ul class="submenu-list">
+                ${item.subpaginas.map(sub => `
+                  <li class="submenu-item">
+                    <a href="${sub.url}">
+                      <i class="${sub.icono}"></i>
+                      <span>${sub.nombre}</span>
+                    </a>
+                  </li>
+                `).join('')}
+              </ul>
+            </li>
+          `;
+        } else {
+          html += `
+            <li class="menu-item">
+              <a href="${item.url}" class="menu-item-btn">
+                <div class="menu-item-btn-content">
+                  <i class="${item.icono} main-icon"></i>
+                  <span>${item.nombre}</span>
+                </div>
+              </a>
+            </li>
+          `;
+        }
       });
 
       html += `</ul>`;
@@ -727,13 +837,33 @@
       if (overlay) overlay.onclick = toggleMenu;
     }
 
-    // RENDERIZAR TABLA CON DRAG AND DROP
+    /* TOGGLE DEL ACORDEÓN */
+    function toggleAcordeon(id) {
+      const menuItem = document.getElementById(`menu-item-${id}`);
+      if (menuItem) {
+        menuItem.classList.toggle("open");
+      }
+    }
+
+    /* ACTUALIZAR SELECTOR PADRE EN EL FORMULARIO */
+    function populateParentSelect() {
+      const parentSelect = document.getElementById("parent-id");
+      const items = getMenuItems();
+      parentSelect.innerHTML = `<option value="">-- Menú Principal (Sin padre) --</option>`;
+
+      items.forEach(item => {
+        parentSelect.innerHTML += `<option value="${item.id}">${item.nombre}</option>`;
+      });
+    }
+
+    /* RENDER DE LA TABLA Y SUBPÁGINAS */
     function loadMenuTable() {
       const items = getMenuItems();
       const tbody = document.getElementById("menu-table-body");
       tbody.innerHTML = "";
 
       items.forEach((item, index) => {
+        // Fila Principal
         const tr = document.createElement("tr");
         tr.draggable = true;
         tr.dataset.index = index;
@@ -755,17 +885,42 @@
           </td>
         `;
 
-        // Eventos Drag and Drop
         tr.addEventListener("dragstart", handleDragStart);
         tr.addEventListener("dragover", handleDragOver);
         tr.addEventListener("drop", handleDrop);
         tr.addEventListener("dragend", handleDragEnd);
 
         tbody.appendChild(tr);
+
+        // Subfilas (Subpáginas)
+        if (item.subpaginas && item.subpaginas.length > 0) {
+          item.subpaginas.forEach(sub => {
+            const subTr = document.createElement("tr");
+            subTr.className = "subpage-row";
+
+            subTr.innerHTML = `
+              <td></td>
+              <td class="subpage-indent"><i class="${sub.icono}" style="color: var(--text-muted);"></i></td>
+              <td>${sub.nombre}</td>
+              <td><span class="badge-url">${sub.url}</span></td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-icon edit" onclick="openEditModal(${sub.id}, ${item.id})">
+                    <i class="fas fa-pen"></i>
+                  </button>
+                  <button class="btn-icon delete" onclick="deleteMenuItem(${sub.id}, ${item.id})">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(subTr);
+          });
+        }
       });
     }
 
-    // LÓGICA DE ARRASTRE
+    /* DRAG AND DROP */
     let dragSrcIndex = null;
 
     function handleDragStart(e) {
@@ -789,8 +944,7 @@
         items.splice(dropTargetIndex, 0, movedItem);
 
         saveMenuItems(items);
-        loadMenuTable();
-        renderSidebarMenu();
+        refreshAll();
       }
     }
 
@@ -798,33 +952,53 @@
       this.classList.remove("dragging");
     }
 
-    // AGREGAR NUEVA PÁGINA
+    /* AGREGAR OPCIÓN / SUBPÁGINA */
     document.getElementById("menu-form").addEventListener("submit", (e) => {
       e.preventDefault();
       const items = getMenuItems();
+      const parentId = document.getElementById("parent-id").value;
 
       const newItem = {
         id: Date.now(),
         nombre: document.getElementById("nombre").value,
         url: document.getElementById("url").value,
-        icono: selectedIconClass
+        icono: selectedIconClass,
+        subpaginas: []
       };
 
-      items.push(newItem);
-      saveMenuItems(items);
+      if (parentId) {
+        // Agregar como subpágina
+        const parent = items.find(i => i.id == parentId);
+        if (parent) {
+          if (!parent.subpaginas) parent.subpaginas = [];
+          parent.subpaginas.push(newItem);
+        }
+      } else {
+        // Agregar como menú principal
+        items.push(newItem);
+      }
 
+      saveMenuItems(items);
       e.target.reset();
-      loadMenuTable();
-      renderSidebarMenu();
+      refreshAll();
     });
 
-    // MODAL EDICIÓN
-    function openEditModal(id) {
+    /* EDITAR */
+    function openEditModal(id, parentId = null) {
       const items = getMenuItems();
-      const item = items.find(i => i.id === id);
+      let item = null;
+
+      if (parentId) {
+        const parent = items.find(i => i.id === parentId);
+        item = parent ? parent.subpaginas.find(s => s.id === id) : null;
+      } else {
+        item = items.find(i => i.id === id);
+      }
+
       if (!item) return;
 
       document.getElementById("edit-id").value = item.id;
+      document.getElementById("edit-parent-id").value = parentId || "";
       document.getElementById("edit-nombre").value = item.nombre;
       document.getElementById("edit-url").value = item.url;
 
@@ -838,40 +1012,69 @@
     document.getElementById("edit-form").addEventListener("submit", (e) => {
       e.preventDefault();
       const id = Number(document.getElementById("edit-id").value);
+      const parentId = document.getElementById("edit-parent-id").value;
       let items = getMenuItems();
 
-      items = items.map(item => {
-        if (item.id === id) {
-          return {
-            ...item,
-            nombre: document.getElementById("edit-nombre").value,
-            url: document.getElementById("edit-url").value
-          };
+      if (parentId) {
+        const parent = items.find(i => i.id == parentId);
+        if (parent) {
+          parent.subpaginas = parent.subpaginas.map(sub => {
+            if (sub.id === id) {
+              return {
+                ...sub,
+                nombre: document.getElementById("edit-nombre").value,
+                url: document.getElementById("edit-url").value
+              };
+            }
+            return sub;
+          });
         }
-        return item;
-      });
+      } else {
+        items = items.map(item => {
+          if (item.id === id) {
+            return {
+              ...item,
+              nombre: document.getElementById("edit-nombre").value,
+              url: document.getElementById("edit-url").value
+            };
+          }
+          return item;
+        });
+      }
 
       saveMenuItems(items);
       closeEditModal();
-      loadMenuTable();
-      renderSidebarMenu();
+      refreshAll();
     });
 
-    // ELIMINAR OPCIÓN
-    function deleteMenuItem(id) {
+    /* ELIMINAR */
+    function deleteMenuItem(id, parentId = null) {
       let items = getMenuItems();
-      items = items.filter(item => item.id !== id);
+
+      if (parentId) {
+        const parent = items.find(i => i.id === parentId);
+        if (parent) {
+          parent.subpaginas = parent.subpaginas.filter(sub => sub.id !== id);
+        }
+      } else {
+        items = items.filter(item => item.id !== id);
+      }
+
       saveMenuItems(items);
-      loadMenuTable();
-      renderSidebarMenu();
+      refreshAll();
     }
 
-    // INICIALIZACIÓN DE LA APLICACIÓN
+    function refreshAll() {
+      populateParentSelect();
+      renderSidebarMenu();
+      loadMenuTable();
+    }
+
+    /* INICIALIZACIÓN */
     document.addEventListener("DOMContentLoaded", () => {
       initTheme();
       initIconDropdown();
-      renderSidebarMenu();
-      loadMenuTable();
+      refreshAll();
     });
   </script>
 </body>
