@@ -191,6 +191,30 @@
       display: inline-flex; align-items: center; gap: 0.5rem;
     }
 
+    .btn-whatsapp {
+      background: rgba(37, 211, 102, 0.15);
+      border: 1px solid rgba(37, 211, 102, 0.3);
+      color: #25D366;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-weight: 600; font-size: 0.82rem;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .btn-whatsapp:hover { background: #25D366; color: #0b0f19; }
+
+    .btn-copy {
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      color: var(--accent-cyan);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-left: 0.4rem;
+    }
+    .btn-copy:hover { background: var(--accent-cyan); color: #0b0f19; }
+
     .control-grid {
       display: grid;
       grid-template-columns: 340px 1fr;
@@ -270,6 +294,14 @@
       border: 1px solid rgba(0, 242, 254, 0.25);
     }
 
+    .credit-id-badge {
+      display: inline-flex; align-items: center;
+      background: rgba(255, 255, 255, 0.08); color: var(--text-main);
+      padding: 0.3rem 0.8rem; border-radius: 20px;
+      font-size: 0.82rem; font-weight: 800; margin-bottom: 0.8rem; margin-left: 0.4rem;
+      border: 1px solid var(--border-card); font-family: 'Outfit', sans-serif;
+    }
+
     .status-badge {
       display: inline-flex; align-items: center; gap: 0.3rem;
       padding: 0.3rem 0.8rem; border-radius: 20px;
@@ -317,7 +349,7 @@
       margin-top: 0.6rem; border-top: 1px dashed var(--border-card); padding-top: 0.6rem;
     }
 
-    .timeline-actions { display: flex; justify-content: flex-end; margin-top: 0.8rem; }
+    .timeline-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 0.8rem; }
 
     .btn-detail {
       background: rgba(0, 242, 254, 0.1); border: 1px solid rgba(0, 242, 254, 0.3);
@@ -396,7 +428,6 @@
 
     textarea.input-control { resize: vertical; min-height: 80px; }
 
-    /* SECCIÓN DE POSPONER OCULTA POR DEFECTO */
     .postpone-panel {
       background: rgba(245, 158, 11, 0.08);
       border: 1px solid rgba(245, 158, 11, 0.25);
@@ -503,8 +534,8 @@
               <input type="text" id="credit-dni" class="input-control" placeholder="Ej. 38123456" readonly style="opacity:0.8;">
             </div>
             <div class="form-group">
-              <label>Correo Electrónico</label>
-              <input type="email" id="credit-email" class="input-control" placeholder="cliente@correo.com">
+              <label>WhatsApp / Teléfono *</label>
+              <input type="text" id="credit-phone" class="input-control" placeholder="Ej. +5491112345678" required>
             </div>
           </div>
 
@@ -597,8 +628,16 @@
 
         <div class="detail-card-grid">
           <div class="detail-box">
+            <label>ID Crédito PROPI</label>
+            <p id="detail-code" style="color:var(--accent-cyan); font-family:'Outfit', sans-serif;">---</p>
+          </div>
+          <div class="detail-box">
+            <label>WhatsApp Cliente</label>
+            <p id="detail-phone-box">---</p>
+          </div>
+          <div class="detail-box">
             <label>DNI / Identificación</label>
-            <p id="detail-dni" style="color:var(--accent-cyan);">---</p>
+            <p id="detail-dni">---</p>
           </div>
           <div class="detail-box">
             <label>Tipo & Modalidad</label>
@@ -679,7 +718,7 @@
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
           <button class="btn-danger" onclick="cancelCredit()"><i class="fas fa-trash-can"></i> Dar de Baja</button>
           <button class="btn-warning" onclick="togglePostponePanel(true)"><i class="fas fa-calendar-plus"></i> Posponer Cobro</button>
-          <button class="btn-success" id="btn-toggle-paid" onclick="togglePaymentStatus()"></button>
+          <button class="btn-success" id="btn-toggle-paid" onclick="handlePaymentAction()"></button>
         </div>
         <div style="display:flex; gap:0.5rem;">
           <button class="btn-secondary" onclick="closeDetailModal()">Cerrar</button>
@@ -687,6 +726,29 @@
             <i class="fas fa-floppy-disk"></i> Guardar Notas
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AUDITORÍA DE PAGO (ALIAS / CVU EMPRESA) -->
+  <div class="modal-overlay" id="payment-audit-modal">
+    <div class="modal-box" style="max-width:480px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-receipt" style="color: var(--accent-green);"></i> Registro Auditoría de Cobro</h3>
+        <button class="modal-close" onclick="closePaymentAuditModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:1rem;">
+          Para marcar este crédito como <strong>PAGADO</strong>, indica el Alias o CVU de la empresa al cual el cliente envió el dinero:
+        </p>
+        <div class="form-group">
+          <label>Alias / CVU de la Empresa Receptor *</label>
+          <input type="text" id="company-received-alias" class="input-control" placeholder="Ej. propi.cobros.mp / 00000031..." required>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end;">
+        <button class="btn-secondary" onclick="closePaymentAuditModal()">Cancelar</button>
+        <button class="btn-success" onclick="confirmPaymentWithAudit()"><i class="fas fa-check"></i> Confirmar Pago Auditado</button>
       </div>
     </div>
   </div>
@@ -706,6 +768,20 @@
       { id: 3, nombre: "Control Créditos", url: "control.html", icono: "fas fa-sliders", subpaginas: [] },
       { id: 4, nombre: "Configuración Menú", url: "menu.html", icono: "fas fa-bars-staggered", subpaginas: [] }
     ];
+
+    /* GENERAR ID PROPI (#4251PROPI) */
+    function generatePropiId() {
+      const num = Math.floor(1000 + Math.random() * 9000);
+      return `#${num}PROPI`;
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert(`Copiado al portapapeles: ${text}`);
+      }).catch(err => {
+        console.error('Error al copiar: ', err);
+      });
+    }
 
     /* TEMA Y SIDEBAR */
     function initTheme() {
@@ -850,7 +926,9 @@
       }
 
       filteredCredits.forEach(c => {
-        const client = clients.find(cl => cl.id == c.clientId) || { nombre: c.clientName, dni: c.dni || 'Sin DNI', fotoPerfil: null };
+        if (!c.propiCode) c.propiCode = generatePropiId(); // Migrar existentes si faltara
+
+        const client = clients.find(cl => cl.id == c.clientId) || { nombre: c.clientName, dni: c.dni || 'Sin DNI', fotoPerfil: null, telefono: c.phone || '' };
         const avatarHTML = client.fotoPerfil 
           ? `<img src="${client.fotoPerfil}" alt="${client.nombre}">` 
           : client.nombre ? client.nombre.substring(0,2).toUpperCase() : 'CL';
@@ -865,6 +943,10 @@
         if (isPaid) { statusClass = "paid"; statusLabel = "PAGADO"; }
         else if (isPostponed) { statusClass = "postponed"; statusLabel = "POSPONIDO"; }
 
+        const phoneClean = (c.phone || client.telefono || '').replace(/[^0-9]/g, '');
+        const waText = encodeURIComponent(`Hola ${client.nombre}, te contactamos de PROPI por tu crédito ${c.propiCode} con vencimiento el ${writtenDate}. Saludos!`);
+        const waUrl = `https://wa.me/${phoneClean}?text=${waText}`;
+
         const item = document.createElement("div");
         item.className = "timeline-item";
         item.innerHTML = `
@@ -874,6 +956,7 @@
           <div class="timeline-card">
             <div>
               <div class="timeline-date-badge"><i class="fas fa-calendar-day"></i> ${writtenDate}</div>
+              <span class="credit-id-badge">${c.propiCode} <button class="btn-copy" onclick="copyToClipboard('${c.propiCode}')"><i class="fas fa-copy"></i></button></span>
               <span class="status-badge ${statusClass}"><i class="fas fa-circle-dot"></i> ${statusLabel}</span>
             </div>
 
@@ -894,13 +977,14 @@
               <div class="detail-item"><label>Ganancia</label><span style="color:var(--accent-green);">$${profit.toLocaleString()}</span></div>
             </div>
 
-            ${c.alias ? `<p style="font-size:0.8rem; color:var(--text-muted);"><i class="fas fa-at"></i> ALIAS: <strong>${c.alias}</strong></p>` : ''}
+            ${c.alias ? `<p style="font-size:0.8rem; color:var(--text-muted);"><i class="fas fa-at"></i> ALIAS Cliente: <strong>${c.alias}</strong></p>` : ''}
 
             <div class="audit-stamp">
               <i class="fas fa-shield-check"></i> Auditoría Oficial: ${c.auditStamp}
             </div>
 
             <div class="timeline-actions">
+              ${phoneClean ? `<a href="${waUrl}" target="_blank" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Contactar</a>` : '<span></span>'}
               <button class="btn-detail" onclick="openDetailModal(${c.id})"><i class="fas fa-eye"></i> Ver Detalle</button>
             </div>
           </div>
@@ -936,10 +1020,10 @@
       const client = clients.find(c => c.id == selectedId);
       if (client) {
         document.getElementById("credit-dni").value = client.dni || "";
-        document.getElementById("credit-email").value = client.email || "";
+        document.getElementById("credit-phone").value = client.telefono || "";
       } else {
         document.getElementById("credit-dni").value = "";
-        document.getElementById("credit-email").value = "";
+        document.getElementById("credit-phone").value = "";
       }
     }
 
@@ -951,10 +1035,11 @@
 
       const newCredit = {
         id: Date.now(),
+        propiCode: generatePropiId(),
         clientId: clientId,
         clientName: client ? client.nombre : "Cliente Directo",
         dni: document.getElementById("credit-dni").value,
-        email: document.getElementById("credit-email").value,
+        phone: document.getElementById("credit-phone").value,
         cvu: document.getElementById("credit-cvu").value,
         alias: document.getElementById("credit-alias").value,
         address: document.getElementById("credit-address").value,
@@ -983,6 +1068,8 @@
       const credit = credits.find(c => c.id === id);
       if (!credit) return;
 
+      if (!credit.propiCode) credit.propiCode = generatePropiId();
+
       const client = clients.find(cl => cl.id == credit.clientId) || { nombre: credit.clientName, dni: credit.dni || '---', fotoPerfil: null };
       const avatarHTML = client.fotoPerfil 
         ? `<img src="${client.fotoPerfil}" alt="${client.nombre}">` 
@@ -1007,6 +1094,18 @@
         ${statusBadge}
       `;
 
+      document.getElementById("detail-code").innerHTML = `${credit.propiCode} <button class="btn-copy" onclick="copyToClipboard('${credit.propiCode}')"><i class="fas fa-copy"></i> Copiar</button>`;
+
+      const phoneClean = (credit.phone || '').replace(/[^0-9]/g, '');
+      if (phoneClean) {
+        const waText = encodeURIComponent(`Hola ${client.nombre}, te contactamos de PROPI por tu crédito ${credit.propiCode}. Saludos!`);
+        document.getElementById("detail-phone-box").innerHTML = `
+          ${credit.phone} <a href="https://wa.me/${phoneClean}?text=${waText}" target="_blank" class="btn-whatsapp" style="margin-left:0.4rem;"><i class="fab fa-whatsapp"></i> Chat</a>
+        `;
+      } else {
+        document.getElementById("detail-phone-box").innerText = "No registrado";
+      }
+
       document.getElementById("detail-dni").innerText = client.dni || credit.dni || 'No registrado';
       document.getElementById("detail-type").innerText = `${credit.type} (${credit.frequency})`;
       document.getElementById("detail-given").innerText = `$${Number(credit.amountGiven).toLocaleString()}`;
@@ -1023,12 +1122,10 @@
       document.getElementById("detail-audit").innerText = credit.auditStamp;
       document.getElementById("detail-notes").value = credit.notes || '';
 
-      /* PREPARAR PANEL DE POSPONER */
       document.getElementById("postpone-new-date").value = credit.dueDate;
       document.getElementById("postpone-fee").value = 0;
       togglePostponePanel(false);
 
-      /* BOTÓN MARCAR COMO PAGADO */
       const btnPaid = document.getElementById("btn-toggle-paid");
       if (isPaid) {
         btnPaid.className = "btn-secondary";
@@ -1109,21 +1206,58 @@
       closeDetailModal();
     }
 
-    function togglePaymentStatus() {
+    /* MANEJO Y AUDITORÍA DE PAGOS */
+    function handlePaymentAction() {
       if (!activeCreditId) return;
+      const credit = credits.find(c => c.id === activeCreditId);
+      if (!credit) return;
+
+      if (credit.status === "Pagado") {
+        // Desmarcar pagado
+        credits = credits.map(c => c.id === activeCreditId ? { ...c, status: "Pendiente" } : c);
+        localStorage.setItem("propigestion_creditos", JSON.stringify(credits));
+        closeDetailModal();
+        renderCalendar();
+        renderTimeline();
+      } else {
+        // Abrir modal de auditoría de pago
+        document.getElementById("company-received-alias").value = "";
+        document.getElementById("payment-audit-modal").classList.add("active");
+      }
+    }
+
+    function closePaymentAuditModal() {
+      document.getElementById("payment-audit-modal").classList.remove("active");
+    }
+
+    function confirmPaymentWithAudit() {
+      const aliasReceived = document.getElementById("company-received-alias").value.trim();
+      if (!aliasReceived) {
+        alert("Debes ingresar el Alias o CVU de la empresa donde se recibió el dinero.");
+        return;
+      }
+
+      const now = new Date();
+      const dateNowStr = `${now.toLocaleDateString('es-AR')} ${now.toLocaleTimeString('es-AR')}`;
+      const logAudit = `\n[${dateNowStr}] PAGO RECIBIDO Y AUDITADO - Dinero ingresado en Alias/CVU Empresa: ${aliasReceived}`;
 
       credits = credits.map(c => {
         if (c.id === activeCreditId) {
-          const newStatus = c.status === "Pagado" ? "Pendiente" : "Pagado";
-          return { ...c, status: newStatus };
+          return {
+            ...c,
+            status: "Pagado",
+            notes: (c.notes || '') + logAudit
+          };
         }
         return c;
       });
 
       localStorage.setItem("propigestion_creditos", JSON.stringify(credits));
+      closePaymentAuditModal();
       closeDetailModal();
       renderCalendar();
       renderTimeline();
+      alert("¡Pago registrado y auditado correctamente!");
     }
 
     function cancelCredit() {
