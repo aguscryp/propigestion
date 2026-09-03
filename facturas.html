@@ -201,12 +201,12 @@
     .audit-item-card {
       background: var(--bg-input); border: 1px solid var(--border-card);
       border-radius: 14px; padding: 1rem;
-      display: flex; flex-direction: column; gap: 0.5rem;
+      display: flex; flex-direction: column; gap: 0.4rem;
       transition: all 0.2s ease;
     }
     .audit-item-card:hover { border-color: var(--accent-cyan); }
 
-    /* ESTILOS DEL PLANTILLA DE FACTURA PDF (DISEÑO PROFESIONAL) */
+    /* ESTILOS DEL PLANTILLA DE FACTURA PDF */
     .pdf-preview-container {
       background: #ffffff;
       color: #1e293b;
@@ -627,21 +627,30 @@
 
     /* REGISTRO Y AUDITORÍA DE FACTURAS (PANEL IZQUIERDO) */
     function registerInvoiceAudit(credit) {
-      const existing = invoices.find(inv => inv.creditId === credit.id);
-      if (!existing) {
-        const now = new Date();
+      const client = clients.find(cl => cl.id == credit.clientId) || {};
+      const clientDni = client.dni || credit.dni || '---';
+
+      const existingIndex = invoices.findIndex(inv => inv.creditId === credit.id);
+      const now = new Date();
+
+      if (existingIndex === -1) {
         const newInvoice = {
           id: Date.now(),
           creditId: credit.id,
           propiCode: credit.propiCode,
           clientName: credit.clientName,
+          clientDni: clientDni,
           amountReturn: credit.amountReturn,
           dateIssued: `${now.toLocaleDateString('es-AR')} ${now.toLocaleTimeString('es-AR')}`,
           delivered: false // Estado por defecto: Pendiente de entrega
         };
         invoices.unshift(newInvoice);
-        localStorage.setItem("propigestion_facturas", JSON.stringify(invoices));
+      } else {
+        // Si la factura ya existía en la lista, nos aseguramos de actualizar el DNI por si cambio/completo datos
+        invoices[existingIndex].clientDni = clientDni;
       }
+
+      localStorage.setItem("propigestion_facturas", JSON.stringify(invoices));
       renderAuditInvoiceList();
     }
 
@@ -679,8 +688,11 @@
               ${inv.delivered ? 'Entregada' : 'Pendiente'}
             </button>
           </div>
-          <div style="font-size:0.85rem; font-weight:600;">${inv.clientName}</div>
-          <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted);">
+          <div style="font-size:0.88rem; font-weight:600; color:var(--text-main);">${inv.clientName}</div>
+          <div style="font-size:0.78rem; color:var(--accent-cyan); font-weight:500;">
+            <i class="fas fa-id-card" style="font-size:0.75rem;"></i> DNI: ${inv.clientDni || '---'}
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-top:0.2rem;">
             <span>Monto: $${Number(inv.amountReturn).toLocaleString()}</span>
             <span>${inv.dateIssued.split(' ')[0]}</span>
           </div>
