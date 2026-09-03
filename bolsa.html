@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propigestion - Bolsa de Créditos Disponibles</title>
+  
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root[data-theme="dark"] {
+      --bg-main: #0b0f19;
+      --bg-card: rgba(18, 26, 43, 0.75);
+      --bg-input: rgba(0, 0, 0, 0.3);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f2fe;
+      --accent-blue: #4facfe;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --accent-red: #ef4444;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --header-bg: rgba(11, 15, 25, 0.85);
+      --sidebar-bg: rgba(11, 15, 25, 0.95);
+      --row-hover: rgba(255, 255, 255, 0.04);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+    }
+
+    :root[data-theme="light"] {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-input: #f1f5f9;
+      --border-card: #e2e8f0;
+      --accent-cyan: #0284c7;
+      --accent-blue: #2563eb;
+      --accent-green: #059669;
+      --accent-orange: #d97706;
+      --accent-purple: #7c3aed;
+      --accent-red: #dc2626;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --header-bg: rgba(255, 255, 255, 0.9);
+      --sidebar-bg: #ffffff;
+      --row-hover: #f1f5f9;
+      --shadow-color: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* HEADER Y SIDEBAR */
+    header {
+      background: var(--header-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-card);
+      padding: 0.8rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 500;
+      box-shadow: 0 4px 20px var(--shadow-color);
+    }
+
+    .brand-container { display: flex; align-items: center; gap: 1.2rem; }
+    .hamburger-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-box { display: flex; align-items: center; gap: 0.8rem; }
+    .logo-p {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem; font-weight: 800; color: #0b0f19;
+    }
+    .logo-text { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700; }
+    .logo-text span { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .theme-toggle-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      padding: 0.6rem 1.2rem;
+      border-radius: 12px;
+      font-weight: 600; font-size: 0.88rem;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+
+    .sidebar-menu {
+      position: fixed; top: 0; left: -300px; width: 300px; height: 100vh;
+      background: var(--sidebar-bg); backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-card);
+      transition: left 0.35s ease; z-index: 1000;
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .sidebar-menu.active { left: 0; }
+    .sidebar-header { padding: 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-card); }
+    .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .menu-list { list-style: none; padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .menu-item-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.2rem; color: var(--text-muted); background: transparent; border: none; border-radius: 10px; cursor: pointer; text-decoration: none; font-size: 0.95rem; }
+    .menu-item-btn:hover { background: var(--row-hover); color: var(--text-main); }
+    .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; z-index: 999; }
+    .sidebar-overlay.active { display: block; }
+
+    /* LAYOUT Y CONTAINER */
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+
+    .page-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .page-title h1 { font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 700; display: flex; align-items: center; gap: 0.8rem; }
+    .page-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem; }
+
+    /* TARJETAS KPI */
+    .kpi-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem; margin-bottom: 2rem;
+    }
+    .kpi-card {
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: 18px; padding: 1.4rem;
+      display: flex; align-items: center; gap: 1.2rem;
+      box-shadow: 0 10px 25px var(--shadow-color);
+    }
+    .kpi-icon {
+      width: 54px; height: 54px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; flex-shrink: 0;
+    }
+    .kpi-info h4 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-info span { font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--text-main); display: block; margin-top: 0.2rem; }
+
+    /* CARD DE TABLA DE BUSQUEDA */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px var(--shadow-color);
+    }
+
+    .table-toolbar {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .search-input-box {
+      position: relative; flex: 1; max-width: 400px;
+    }
+    .search-input-box i {
+      position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+    .search-input-box input {
+      width: 100%; background: var(--bg-input); border: 1px solid var(--border-card);
+      border-radius: 12px; padding: 0.75rem 1rem 0.75rem 2.8rem;
+      color: var(--text-main); font-size: 0.9rem; outline: none;
+    }
+    .search-input-box input:focus { border-color: var(--accent-cyan); }
+
+    /* TABLA PROFESIONAL */
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th {
+      padding: 1rem; font-size: 0.78rem; font-weight: 700;
+      color: var(--text-muted); text-transform: uppercase;
+      border-bottom: 1px solid var(--border-card); background: rgba(0,0,0,0.1);
+    }
+    td { padding: 1.1rem 1rem; border-bottom: 1px solid var(--border-card); font-size: 0.9rem; }
+    tbody tr:hover { background: var(--row-hover); }
+
+    .client-cell { display: flex; align-items: center; gap: 0.8rem; }
+    .client-avatar-sm {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; color: #0b0f19; font-size: 0.95rem;
+    }
+
+    .badge-tag {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.3rem 0.75rem; border-radius: 20px;
+      font-size: 0.78rem; font-weight: 600;
+    }
+    .tag-nuevo { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .tag-reincidente { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); border: 1px solid rgba(139, 92, 246, 0.3); }
+
+    .btn-action-sm {
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      color: var(--accent-cyan);
+      padding: 0.5rem 0.9rem; border-radius: 10px;
+      font-weight: 600; font-size: 0.82rem;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;
+      text-decoration: none;
+    }
+    .btn-action-sm:hover {
+      background: var(--accent-cyan); color: #0b0f19;
+    }
+
+    .btn-wsp {
+      background: rgba(37, 211, 102, 0.15);
+      border: 1px solid rgba(37, 211, 102, 0.3);
+      color: #25D366;
+      padding: 0.5rem 0.9rem; border-radius: 10px;
+      font-weight: 600; font-size: 0.82rem;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;
+      text-decoration: none; margin-right: 0.4rem;
+    }
+    .btn-wsp:hover { background: #25D366; color: #fff; }
+
+    .empty-state {
+      text-align: center; padding: 4rem 1rem; color: var(--text-muted);
+    }
+    .empty-state i { font-size: 3.5rem; color: var(--border-card); margin-bottom: 1rem; display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-container">
+      <button id="hamburger-btn" class="hamburger-btn"><i class="fas fa-bars"></i></button>
+      <div class="logo-box">
+        <div class="logo-p">P</div>
+        <div class="logo-text">Propi<span>gestion</span></div>
+      </div>
+    </div>
+    <button id="theme-toggle" class="theme-toggle-btn">
+      <i class="fas fa-moon" id="theme-icon"></i><span id="theme-text">Modo Oscuro</span>
+    </button>
+  </header>
+
+  <!-- SIDEBAR DINÁMICO -->
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
+  <nav id="sidebar-menu" class="sidebar-menu"></nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container">
+    <div class="page-header">
+      <div class="page-title">
+        <h1><i class="fas fa-sack-dollar" style="color: var(--accent-cyan);"></i> Bolsa de Créditos Disponibles</h1>
+        <p>Clientes registrados sin ningún crédito activo actualmente, listos para recoloque de liquidez.</p>
+      </div>
+    </div>
+
+    <!-- KPIS -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan);">
+          <i class="fas fa-users-viewfinder"></i>
+        </div>
+        <div class="kpi-info">
+          <h4>Clientes en Bolsa</h4>
+          <span id="kpi-total-bolsa">0</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green);">
+          <i class="fas fa-user-plus"></i>
+        </div>
+        <div class="kpi-info">
+          <h4>Nuevos Sin Historial</h4>
+          <span id="kpi-nuevos">0</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--accent-purple);">
+          <i class="fas fa-rotate-left"></i>
+        </div>
+        <div class="kpi-info">
+          <h4>Historial Saldado (Reincidencias)</h4>
+          <span id="kpi-reincidentes">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD PRINCIPAL DE LA BOLSA -->
+    <div class="card">
+      <div class="table-toolbar">
+        <div class="search-input-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="search-bolsa" placeholder="Buscar por Nombre, DNI o Teléfono..." oninput="renderBolsa()">
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+          <i class="fas fa-circle-info" style="color: var(--accent-cyan);"></i> Al activar un crédito, el cliente sale automáticamente de la bolsa.
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>DNI</th>
+              <th>Teléfono / Contacto</th>
+              <th>Perfil en Bolsa</th>
+              <th>Histórico Créditos</th>
+              <th>Acciones de Oferta</th>
+            </tr>
+          </thead>
+          <tbody id="bolsa-table-body">
+            <!-- RENDER DINÁMICO -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="empty-bolsa" class="empty-state" style="display: none;">
+        <i class="fas fa-user-check"></i>
+        <h3>¡Todos los clientes tienen créditos activos!</h3>
+        <p>En este momento no hay ningún cliente sin operaciones activas registrado en PROPI.</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* DATOS LOCALSTORAGE */
+    let clients = JSON.parse(localStorage.getItem("propigestion_clientes")) || [];
+    let credits = JSON.parse(localStorage.getItem("propigestion_creditos")) || [];
+
+    const defaultMenuItems = [
+      { id: 1, nombre: "Dashboard", url: "index.html", icono: "fas fa-chart-line", subpaginas: [] },
+      { id: 2, nombre: "Cartera de Clientes", url: "clientes.html", icono: "fas fa-users", subpaginas: [] },
+      { id: 3, nombre: "Control Créditos", url: "control.html", icono: "fas fa-sliders", subpaginas: [] },
+      { id: 4, nombre: "Facturas & PDF", url: "facturas.html", icono: "fas fa-file-pdf", subpaginas: [] },
+      { id: 5, nombre: "Configuración Menú", url: "menu.html", icono: "fas fa-bars-staggered", subpaginas: [] }
+    ];
+
+    /* TEMA Y SIDEBAR */
+    function initTheme() {
+      const currentTheme = localStorage.getItem("propigestion_theme") || "dark";
+      document.documentElement.setAttribute("data-theme", currentTheme);
+      const icon = document.getElementById("theme-icon");
+      const text = document.getElementById("theme-text");
+      icon.className = currentTheme === "light" ? "fas fa-sun" : "fas fa-moon";
+      text.innerText = currentTheme === "light" ? "Modo Claro" : "Modo Oscuro";
+    }
+
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+      const activeTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = activeTheme === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("propigestion_theme", newTheme);
+      initTheme();
+    });
+
+    function renderSidebarMenu() {
+      const sidebar = document.getElementById("sidebar-menu");
+      const storedMenu = localStorage.getItem("propigestion_menu");
+      const items = storedMenu ? JSON.parse(storedMenu) : defaultMenuItems;
+
+      let html = `
+        <div class="sidebar-header">
+          <div class="logo-box"><div class="logo-p">P</div><div class="logo-text">Propi<span>gestion</span></div></div>
+          <button id="close-btn" class="close-btn">&times;</button>
+        </div>
+        <ul class="menu-list">
+          ${items.map(i => `
+            <li class="menu-item">
+              <a href="${i.url}" class="menu-item-btn">
+                <div class="brand-container"><i class="${i.icono}" style="color:var(--accent-cyan); width:20px;"></i> <span>${i.nombre}</span></div>
+              </a>
+            </li>
+          `).join('')}
+        </ul>
+      `;
+      sidebar.innerHTML = html;
+
+      document.getElementById("hamburger-btn").onclick = () => {
+        sidebar.classList.add("active");
+        document.getElementById("sidebar-overlay").classList.add("active");
+      };
+      document.getElementById("close-btn").onclick = closeSidebar;
+      document.getElementById("sidebar-overlay").onclick = closeSidebar;
+    }
+
+    function closeSidebar() {
+      document.getElementById("sidebar-menu").classList.remove("active");
+      document.getElementById("sidebar-overlay").classList.remove("active");
+    }
+
+    /* LÓGICA DE BOLSA DE CRÉDITOS */
+    function renderBolsa() {
+      const tbody = document.getElementById("bolsa-table-body");
+      const emptyState = document.getElementById("empty-bolsa");
+      const query = document.getElementById("search-bolsa").value.toLowerCase().trim();
+
+      let clientesEnBolsa = [];
+      let countNuevos = 0;
+      let countReincidentes = 0;
+
+      clients.forEach(client => {
+        const clientDni = client.dni ? client.dni.toString().trim() : "";
+        
+        // Obtener todos los créditos asociados al cliente
+        const misCreditos = credits.filter(cr => 
+          cr.clientId == client.id || (cr.dni && cr.dni.toString().trim() === clientDni)
+        );
+
+        // Verificar si tiene crédito activo actualmente (Activo o Vencido sin pagar)
+        const tieneCreditoActivo = misCreditos.some(cr => cr.status === "Activo" || cr.status === "Vencido");
+
+        // Si NO tiene ningún crédito activo, entra en la Bolsa
+        if (!tieneCreditoActivo) {
+          const totalHistorial = misCreditos.length;
+          const esReincidente = totalHistorial > 0;
+
+          if (esReincidente) countReincidentes++;
+          else countNuevos++;
+
+          // Aplicar filtro de búsqueda
+          const matchQuery = client.nombre.toLowerCase().includes(query) ||
+                             clientDni.includes(query) ||
+                             (client.telefono && client.telefono.includes(query));
+
+          if (matchQuery) {
+            clientesEnBolsa.push({
+              ...client,
+              totalHistorial,
+              esReincidente
+            });
+          }
+        }
+      });
+
+      // Actualizar KPIS
+      document.getElementById("kpi-total-bolsa").innerText = countNuevos + countReincidentes;
+      document.getElementById("kpi-nuevos").innerText = countNuevos;
+      document.getElementById("kpi-reincidentes").innerText = countReincidentes;
+
+      // Renderizar Tabla
+      if (clientesEnBolsa.length === 0) {
+        tbody.innerHTML = "";
+        emptyState.style.display = "block";
+        return;
+      }
+
+      emptyState.style.display = "none";
+      tbody.innerHTML = clientesEnBolsa.map(c => {
+        const initials = c.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        const numLimpio = c.telefono ? c.telefono.replace(/\D/g, '') : '';
+        const linkWsp = numLimpio ? `https://wa.me/${numLimpio}?text=Hola%20${encodeURIComponent(c.nombre)},%20te%20contactamos%20desde%20PROPI%20porque%20tenemos%20cupos%20disponibles%20para%20un%20nuevo%20cr%C3%A9dito.` : '#';
+
+        return `
+          <tr>
+            <td>
+              <div class="client-cell">
+                <div class="client-avatar-sm">${initials}</div>
+                <div>
+                  <strong style="color:var(--text-main); font-weight:700;">${c.nombre}</strong>
+                </div>
+              </div>
+            </td>
+            <td><strong>${c.dni || '---'}</strong></td>
+            <td>${c.telefono || 'Sin registrar'}</td>
+            <td>
+              ${c.esReincidente 
+                ? `<span class="badge-tag tag-reincidente"><i class="fas fa-rotate-left"></i> Cliente Histórico (Saldado)</span>`
+                : `<span class="badge-tag tag-nuevo"><i class="fas fa-user-plus"></i> Cliente Nuevo (Sin Préstamos)</span>`
+              }
+            </td>
+            <td>
+              <strong style="color:var(--accent-cyan);">${c.totalHistorial}</strong> Préstamo(s) Anterior(es)
+            </td>
+            <td>
+              ${c.telefono ? `<a href="${linkWsp}" target="_blank" class="btn-wsp"><i class="fab fa-whatsapp"></i> Ofrecer Crédito</a>` : ''}
+              <a href="control.html" class="btn-action-sm"><i class="fas fa-plus-circle"></i> Crear Crédito</a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /* INICIALIZACIÓN */
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      renderSidebarMenu();
+      renderBolsa();
+    });
+  </script>
+</body>
+</html>
