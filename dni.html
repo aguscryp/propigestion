@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propigestion - DNI Checking & Historial Crediticio</title>
+  
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root[data-theme="dark"] {
+      --bg-main: #0b0f19;
+      --bg-card: rgba(18, 26, 43, 0.75);
+      --bg-input: rgba(0, 0, 0, 0.3);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f2fe;
+      --accent-blue: #4facfe;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #8b5cf6;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --header-bg: rgba(11, 15, 25, 0.85);
+      --sidebar-bg: rgba(11, 15, 25, 0.95);
+      --row-hover: rgba(255, 255, 255, 0.04);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+    }
+
+    :root[data-theme="light"] {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-input: #f1f5f9;
+      --border-card: #e2e8f0;
+      --accent-cyan: #0284c7;
+      --accent-blue: #2563eb;
+      --accent-green: #059669;
+      --accent-orange: #d97706;
+      --accent-red: #dc2626;
+      --accent-purple: #7c3aed;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --header-bg: rgba(255, 255, 255, 0.9);
+      --sidebar-bg: #ffffff;
+      --row-hover: #f1f5f9;
+      --shadow-color: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* HEADER Y SIDEBAR */
+    header {
+      background: var(--header-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-card);
+      padding: 0.8rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 500;
+      box-shadow: 0 4px 20px var(--shadow-color);
+    }
+
+    .brand-container { display: flex; align-items: center; gap: 1.2rem; }
+    .hamburger-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-box { display: flex; align-items: center; gap: 0.8rem; }
+    .logo-p {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem; font-weight: 800; color: #0b0f19;
+    }
+    .logo-text { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700; }
+    .logo-text span { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .theme-toggle-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      padding: 0.6rem 1.2rem;
+      border-radius: 12px;
+      font-weight: 600; font-size: 0.88rem;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+
+    .sidebar-menu {
+      position: fixed; top: 0; left: -300px; width: 300px; height: 100vh;
+      background: var(--sidebar-bg); backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-card);
+      transition: left 0.35s ease; z-index: 1000;
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .sidebar-menu.active { left: 0; }
+    .sidebar-header { padding: 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-card); }
+    .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .menu-list { list-style: none; padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .menu-item-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.2rem; color: var(--text-muted); background: transparent; border: none; border-radius: 10px; cursor: pointer; text-decoration: none; font-size: 0.95rem; }
+    .menu-item-btn:hover { background: var(--row-hover); color: var(--text-main); }
+    .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; z-index: 999; }
+    .sidebar-overlay.active { display: block; }
+
+    /* LAYOUT Y CONTAINER */
+    .container { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; }
+
+    .page-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .page-title h1 { font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 700; display: flex; align-items: center; gap: 0.8rem; }
+    .page-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem; }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      padding: 1.8rem;
+      box-shadow: 0 10px 30px var(--shadow-color);
+      margin-bottom: 2rem;
+    }
+
+    /* BUSCADOR DNI */
+    .search-box-container {
+      display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;
+    }
+    .input-control {
+      background: var(--bg-input); border: 1px solid var(--border-card);
+      border-radius: 14px; padding: 0.85rem 1.2rem; color: var(--text-main);
+      font-size: 1rem; outline: none; flex: 1; min-width: 240px;
+    }
+    .input-control:focus { border-color: var(--accent-cyan); }
+
+    .btn-action {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #0b0f19; border: none;
+      padding: 0.85rem 1.8rem; border-radius: 14px;
+      font-weight: 700; font-size: 0.95rem;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 0.6rem;
+      box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+    }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 242, 254, 0.4); }
+
+    /* CARGA ANIMADA (7 SEGUNDOS) */
+    .loader-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3.5rem 1rem;
+      text-align: center;
+    }
+    .loader-container.active { display: flex; }
+
+    .radar-spinner {
+      position: relative;
+      width: 100px; height: 100px;
+      margin-bottom: 2rem;
+    }
+    .radar-circle {
+      position: absolute; inset: 0;
+      border: 3px solid rgba(0, 242, 254, 0.15);
+      border-top-color: var(--accent-cyan);
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite;
+    }
+    .radar-inner-circle {
+      position: absolute; inset: 15px;
+      border: 3px solid rgba(79, 172, 254, 0.15);
+      border-bottom-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin-reverse 0.9s linear infinite;
+    }
+    .radar-icon {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; color: var(--accent-cyan);
+    }
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes spin-reverse { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+
+    .progress-bar-bg {
+      width: 100%; max-width: 450px; height: 8px;
+      background: var(--bg-input); border-radius: 10px;
+      overflow: hidden; border: 1px solid var(--border-card);
+      margin-bottom: 1rem;
+    }
+    .progress-bar-fill {
+      width: 0%; height: 100%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+      border-radius: 10px;
+      transition: width 0.1s linear;
+    }
+    .loader-status { font-size: 0.92rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.3rem; }
+    .loader-subtext { font-size: 0.78rem; color: var(--text-muted); }
+
+    /* MENSAJES DE ESTADO / ALERTA */
+    .alert-card {
+      display: none;
+      padding: 2rem;
+      border-radius: 16px;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .alert-card i { font-size: 2.8rem; margin-bottom: 1rem; display: block; }
+    .alert-card h3 { font-family: 'Outfit', sans-serif; font-size: 1.3rem; margin-bottom: 0.5rem; }
+    .alert-card p { font-size: 0.92rem; max-width: 500px; margin: 0 auto; line-height: 1.5; }
+
+    .alert-not-found {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+    }
+    .alert-not-found i { color: var(--accent-red); }
+
+    .alert-no-credits {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: #fcd34d;
+    }
+    .alert-no-credits i { color: var(--accent-orange); }
+
+    /* TARJETA CABECERA DEL CLIENTE */
+    .client-profile-header {
+      display: none;
+      align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1.5rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      border-radius: 16px; padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .client-profile-info { display: flex; align-items: center; gap: 1.2rem; }
+    .client-avatar {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      border-radius: 16px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: 800; color: #0b0f19;
+    }
+    .client-details h2 { font-family: 'Outfit', sans-serif; font-size: 1.3rem; }
+    .client-details p { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* TIMELINE VERTICAL DE CRÉDITOS */
+    .timeline-container { display: none; position: relative; padding-left: 2rem; margin-top: 1rem; }
+    .timeline-container::before {
+      content: '';
+      position: absolute; left: 15px; top: 10px; bottom: 10px;
+      width: 3px;
+      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-purple));
+      border-radius: 3px;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+    .timeline-item:last-child { margin-bottom: 0; }
+
+    .timeline-badge {
+      position: absolute; left: -2rem; top: 18px;
+      transform: translateX(-50%);
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--bg-main);
+      border: 3px solid var(--accent-cyan);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; color: var(--accent-cyan);
+      z-index: 2;
+      box-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
+    }
+    .timeline-badge.status-pagado { border-color: var(--accent-green); color: var(--accent-green); box-shadow: 0 0 12px rgba(16, 185, 129, 0.4); }
+    .timeline-badge.status-vencido { border-color: var(--accent-red); color: var(--accent-red); box-shadow: 0 0 12px rgba(239, 68, 68, 0.4); }
+
+    .timeline-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 18px; padding: 1.4rem;
+      box-shadow: 0 8px 25px var(--shadow-color);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .timeline-card:hover { transform: translateX(5px); border-color: var(--accent-cyan); }
+
+    .timeline-card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;
+      border-bottom: 1px solid var(--border-card);
+      padding-bottom: 0.8rem;
+    }
+
+    .status-pill {
+      padding: 0.3rem 0.8rem; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    }
+    .pill-activo { background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan); border: 1px solid rgba(0, 242, 254, 0.3); }
+    .pill-pagado { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .pill-vencido { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .timeline-data-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem; margin-bottom: 1rem;
+    }
+    .data-box label { font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; margin-bottom: 0.2rem; font-weight: 600; }
+    .data-box span { font-size: 0.95rem; font-weight: 700; color: var(--text-main); }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-container">
+      <button id="hamburger-btn" class="hamburger-btn"><i class="fas fa-bars"></i></button>
+      <div class="logo-box">
+        <div class="logo-p">P</div>
+        <div class="logo-text">Propi<span>gestion</span></div>
+      </div>
+    </div>
+    <button id="theme-toggle" class="theme-toggle-btn">
+      <i class="fas fa-moon" id="theme-icon"></i><span id="theme-text">Modo Oscuro</span>
+    </button>
+  </header>
+
+  <!-- SIDEBAR DINÁMICO -->
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
+  <nav id="sidebar-menu" class="sidebar-menu"></nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container">
+    <div class="page-header">
+      <div class="page-title">
+        <h1><i class="fas fa-id-card-clip" style="color: var(--accent-cyan);"></i> DNI Checking PROPI</h1>
+        <p>Búsqueda e inspección profunda del historial de préstamos por documento de identidad.</p>
+      </div>
+    </div>
+
+    <!-- TARJETA DE BÚSQUEDA -->
+    <div class="card">
+      <div class="search-box-container">
+        <i class="fas fa-search" style="font-size: 1.4rem; color: var(--accent-cyan);"></i>
+        <input type="text" id="input-dni-search" class="input-control" placeholder="Ingrese el DNI del cliente (Ej: 38492019)...">
+        <button class="btn-action" onclick="startDniChecking()">
+          <i class="fas fa-shield-halved"></i> Chequear DNI en PROPI
+        </button>
+      </div>
+    </div>
+
+    <!-- PANELES DE RESULTADOS -->
+    <div class="card" id="results-panel" style="min-height: 250px;">
+      
+      <!-- ESTADO INICIAL -->
+      <div id="initial-state" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+        <i class="fas fa-address-card" style="font-size: 3.5rem; color: var(--border-card); margin-bottom: 1rem; display:block;"></i>
+        <p>Ingrese un número de DNI para ejecutar el escaneo de antecedentes crediticios en PROPI.</p>
+      </div>
+
+      <!-- CARGA ANIMADA (7 SEGUNDOS) -->
+      <div class="loader-container" id="loader-container">
+        <div class="radar-spinner">
+          <div class="radar-circle"></div>
+          <div class="radar-inner-circle"></div>
+          <div class="radar-icon"><i class="fas fa-database"></i></div>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <div class="loader-status" id="loader-status-text">Iniciando verificación de identidad...</div>
+        <div class="loader-subtext" id="loader-percent-text">0% completado</div>
+      </div>
+
+      <!-- ALERTA: DNI NO REGISTRADO EN CARTERA -->
+      <div class="alert-card alert-not-found" id="alert-not-found">
+        <i class="fas fa-user-xmark"></i>
+        <h3>DNI No Registrado</h3>
+        <p>Este DNI no está registrado en PROPI.</p>
+      </div>
+
+      <!-- ALERTA: REGISTRADO PERO SIN CRÉDITOS -->
+      <div class="alert-card alert-no-credits" id="alert-no-credits">
+        <i class="fas fa-folder-open"></i>
+        <h3>Sin Historial Crediticio</h3>
+        <p id="no-credits-message">Este DNI no tiene ningún crédito activo en PROPI, es necesario que se haga cliente.</p>
+      </div>
+
+      <!-- CABECERA DE CLIENTE Y TIMELINE -->
+      <div class="client-profile-header" id="client-profile-header">
+        <div class="client-profile-info">
+          <div class="client-avatar" id="client-initials">--</div>
+          <div class="client-details">
+            <h2 id="client-fullname">--</h2>
+            <p id="client-dni-display">DNI: -- | Tel: --</p>
+          </div>
+        </div>
+        <div>
+          <span style="font-size:0.8rem; color:var(--text-muted); display:block; text-align:right;">Total Histórico:</span>
+          <span style="font-size:1.2rem; font-family:'Outfit', sans-serif; font-weight:800; color:var(--accent-cyan);" id="client-total-credits-count">0 Créditos</span>
+        </div>
+      </div>
+
+      <!-- TIMELINE VERTICAL -->
+      <div class="timeline-container" id="timeline-container">
+        <!-- Eventos de timeline insertados dinámicamente -->
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    /* DATOS LOCALSTORAGE */
+    let clients = JSON.parse(localStorage.getItem("propigestion_clientes")) || [];
+    let credits = JSON.parse(localStorage.getItem("propigestion_creditos")) || [];
+
+    const defaultMenuItems = [
+      { id: 1, nombre: "Dashboard", url: "index.html", icono: "fas fa-chart-line", subpaginas: [] },
+      { id: 2, nombre: "Cartera de Clientes", url: "clientes.html", icono: "fas fa-users", subpaginas: [] },
+      { id: 3, nombre: "Control Créditos", url: "control.html", icono: "fas fa-sliders", subpaginas: [] },
+      { id: 4, nombre: "Facturas & PDF", url: "facturas.html", icono: "fas fa-file-pdf", subpaginas: [] },
+      { id: 5, nombre: "Configuración Menú", url: "menu.html", icono: "fas fa-bars-staggered", subpaginas: [] }
+    ];
+
+    /* TEMA Y SIDEBAR */
+    function initTheme() {
+      const currentTheme = localStorage.getItem("propigestion_theme") || "dark";
+      document.documentElement.setAttribute("data-theme", currentTheme);
+      const icon = document.getElementById("theme-icon");
+      const text = document.getElementById("theme-text");
+      icon.className = currentTheme === "light" ? "fas fa-sun" : "fas fa-moon";
+      text.innerText = currentTheme === "light" ? "Modo Claro" : "Modo Oscuro";
+    }
+
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+      const activeTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = activeTheme === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("propigestion_theme", newTheme);
+      initTheme();
+    });
+
+    function renderSidebarMenu() {
+      const sidebar = document.getElementById("sidebar-menu");
+      const storedMenu = localStorage.getItem("propigestion_menu");
+      const items = storedMenu ? JSON.parse(storedMenu) : defaultMenuItems;
+
+      let html = `
+        <div class="sidebar-header">
+          <div class="logo-box"><div class="logo-p">P</div><div class="logo-text">Propi<span>gestion</span></div></div>
+          <button id="close-btn" class="close-btn">&times;</button>
+        </div>
+        <ul class="menu-list">
+          ${items.map(i => `
+            <li class="menu-item">
+              <a href="${i.url}" class="menu-item-btn">
+                <div class="brand-container"><i class="${i.icono}" style="color:var(--accent-cyan); width:20px;"></i> <span>${i.nombre}</span></div>
+              </a>
+            </li>
+          `).join('')}
+        </ul>
+      `;
+      sidebar.innerHTML = html;
+
+      document.getElementById("hamburger-btn").onclick = () => {
+        sidebar.classList.add("active");
+        document.getElementById("sidebar-overlay").classList.add("active");
+      };
+      document.getElementById("close-btn").onclick = closeSidebar;
+      document.getElementById("sidebar-overlay").onclick = closeSidebar;
+    }
+
+    function closeSidebar() {
+      document.getElementById("sidebar-menu").classList.remove("active");
+      document.getElementById("sidebar-overlay").classList.remove("active");
+    }
+
+    /* INICIAR BÚSQUEDA Y ANIMACIÓN DE 7 SEGUNDOS */
+    function startDniChecking() {
+      const dniInput = document.getElementById("input-dni-search").value.trim();
+      if (!dniInput) {
+        alert("Por favor, ingrese un número de DNI para realizar el chequeo.");
+        return;
+      }
+
+      // Ocultar todos los paneles previos
+      document.getElementById("initial-state").style.display = "none";
+      document.getElementById("alert-not-found").style.display = "none";
+      document.getElementById("alert-no-credits").style.display = "none";
+      document.getElementById("client-profile-header").style.display = "none";
+      document.getElementById("timeline-container").style.display = "none";
+
+      // Mostrar cargador
+      const loader = document.getElementById("loader-container");
+      const progressFill = document.getElementById("progress-fill");
+      const statusText = document.getElementById("loader-status-text");
+      const percentText = document.getElementById("loader-percent-text");
+
+      loader.classList.add("active");
+
+      const totalTimeMs = 7000; // 7 segundos exactamente
+      const intervalMs = 50;
+      let elapsedTime = 0;
+
+      const messages = [
+        { pct: 0, text: "Conectando con la base de datos central de PROPI..." },
+        { pct: 20, text: "Escaneando cartera de clientes registrados..." },
+        { pct: 45, text: "Buscando historial de solicitudes y contratos..." },
+        { pct: 70, text: "Verificando estados de cuenta, pagos y morosidad..." },
+        { pct: 90, text: "Compilando reporte crediticio completo..." }
+      ];
+
+      const timer = setInterval(() => {
+        elapsedTime += intervalMs;
+        const progress = Math.min(Math.round((elapsedTime / totalTimeMs) * 100), 100);
+
+        progressFill.style.width = `${progress}%`;
+        percentText.innerText = `${progress}% completado`;
+
+        // Actualizar mensaje según progreso
+        const currentMsg = messages.slice().reverse().find(m => progress >= m.pct);
+        if (currentMsg) {
+          statusText.innerText = currentMsg.text;
+        }
+
+        if (elapsedTime >= totalTimeMs) {
+          clearInterval(timer);
+          loader.classList.remove("active");
+          processDniResults(dniInput);
+        }
+      }, intervalMs);
+    }
+
+    /* PROCESAR RESULTADOS TRAS LA CARGA */
+    function processDniResults(dni) {
+      const cleanDni = dni.toString().trim();
+      
+      // 1. Buscar si el DNI existe en Cartera de Clientes
+      const client = clients.find(c => c.dni && c.dni.toString().trim() === cleanDni);
+
+      if (!client) {
+        // CASO A: El DNI no está registrado en la cartera
+        document.getElementById("alert-not-found").style.display = "block";
+        return;
+      }
+
+      // 2. Buscar si el cliente tiene créditos asociados
+      const clientCredits = credits.filter(cr => cr.clientId == client.id || (cr.dni && cr.dni.toString().trim() === cleanDni));
+
+      if (clientCredits.length === 0) {
+        // CASO B: Está en cartera pero NO tiene créditos
+        const noCreditsMsg = document.getElementById("no-credits-message");
+        noCreditsMsg.innerText = `Este DNI de: (${client.nombre}), no tiene ningún crédito activo en PROPI, es necesario que se haga cliente.`;
+        document.getElementById("alert-no-credits").style.display = "block";
+        return;
+      }
+
+      // CASO C: Tiene historial de créditos -> Mostrar perfil y Timeline
+      renderClientHeader(client, clientCredits.length);
+      renderCreditTimeline(clientCredits);
+    }
+
+    function renderClientHeader(client, totalCredits) {
+      const header = document.getElementById("client-profile-header");
+      const initials = client.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+      document.getElementById("client-initials").innerText = initials;
+      document.getElementById("client-fullname").innerText = client.nombre;
+      document.getElementById("client-dni-display").innerText = `DNI: ${client.dni || '---'} | Teléfono: ${client.telefono || '---'}`;
+      document.getElementById("client-total-credits-count").innerText = `${totalCredits} Crédito${totalCredits > 1 ? 's' : ''}`;
+
+      header.style.display = "flex";
+    }
+
+    function renderCreditTimeline(creditList) {
+      const timeline = document.getElementById("timeline-container");
+      timeline.innerHTML = "";
+
+      // Ordenar préstamos del más reciente al más antiguo
+      creditList.sort((a, b) => b.id - a.id);
+
+      creditList.forEach((cred, index) => {
+        const item = document.createElement("div");
+        item.className = "timeline-item";
+
+        let statusClass = "pill-activo";
+        let badgeIcon = "fa-clock";
+        let badgeClass = "";
+
+        if (cred.status === "Pagado") {
+          statusClass = "pill-pagado";
+          badgeIcon = "fa-check";
+          badgeClass = "status-pagado";
+        } else if (cred.status === "Vencido") {
+          statusClass = "pill-vencido";
+          badgeIcon = "fa-exclamation";
+          badgeClass = "status-vencido";
+        }
+
+        item.innerHTML = `
+          <div class="timeline-badge ${badgeClass}">
+            <i class="fas ${badgeIcon}"></i>
+          </div>
+          <div class="timeline-card">
+            <div class="timeline-card-header">
+              <div>
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">REGISTRO #${index + 1}</span>
+                <h3 style="font-family:'Outfit', sans-serif; font-size:1.1rem; color:var(--accent-cyan); margin-top:0.1rem;">
+                  Código Crédito: ${cred.propiCode}
+                </h3>
+              </div>
+              <span class="status-pill ${statusClass}">${cred.status}</span>
+            </div>
+
+            <div class="timeline-data-grid">
+              <div class="data-box">
+                <label>Tipo de Crédito</label>
+                <span>${cred.type || 'Personal'} (${cred.frequency || 'Semanal'})</span>
+              </div>
+              <div class="data-box">
+                <label>Monto Entregado</label>
+                <span>$${Number(cred.amountGiven).toLocaleString()}</span>
+              </div>
+              <div class="data-box">
+                <label>Total a Devolver</label>
+                <span style="color:var(--text-main); font-weight:800;">$${Number(cred.amountReturn).toLocaleString()}</span>
+              </div>
+              <div class="data-box">
+                <label>Cuotas</label>
+                <span>${cred.installments || 1} Cuotas</span>
+              </div>
+              <div class="data-box">
+                <label>Fecha de Vencimiento</label>
+                <span style="color:var(--accent-blue);">${cred.dueDate || '---'}</span>
+              </div>
+            </div>
+
+            ${cred.notes ? `
+              <div style="background:var(--bg-input); padding:0.8rem; border-radius:10px; font-size:0.82rem; color:var(--text-muted); border:1px solid var(--border-card);">
+                <i class="fas fa-comment-dots" style="color:var(--accent-cyan); margin-right:0.4rem;"></i>
+                <strong>Observaciones:</strong> ${cred.notes}
+              </div>
+            ` : ''}
+          </div>
+        `;
+
+        timeline.appendChild(item);
+      });
+
+      timeline.style.display = "block";
+    }
+
+    /* INICIALIZACIÓN */
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      renderSidebarMenu();
+    });
+  </script>
+</body>
+</html>
