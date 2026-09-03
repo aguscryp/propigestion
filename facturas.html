@@ -142,7 +142,7 @@
 
     .invoice-grid {
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 380px 1fr;
       gap: 1.8rem;
     }
     @media (max-width: 1024px) { .invoice-grid { grid-template-columns: 1fr; } }
@@ -181,6 +181,15 @@
     }
     .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 242, 254, 0.4); }
 
+    .btn-check {
+      background: rgba(0, 242, 254, 0.15); border: 1px solid rgba(0, 242, 254, 0.3);
+      color: var(--accent-cyan); padding: 0.35rem 0.7rem; border-radius: 8px;
+      font-size: 0.78rem; font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      transition: all 0.2s ease;
+    }
+    .btn-check:hover { background: var(--accent-cyan); color: #0b0f19; }
+
     .btn-delivered {
       background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);
       color: var(--accent-green); padding: 0.3rem 0.6rem; border-radius: 8px;
@@ -193,15 +202,39 @@
     }
 
     /* LISTA AUDITORÍA FACTURAS (IZQUIERDA) */
+    .audit-filter-box {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .audit-filter-box i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    .audit-filter-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 0.6rem 0.8rem 0.6rem 2.4rem;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .audit-filter-input:focus { border-color: var(--accent-cyan); }
+
     .invoice-audit-list {
       display: flex; flex-direction: column; gap: 0.8rem;
-      max-height: 650px; overflow-y: auto; padding-right: 0.4rem;
+      max-height: 580px; overflow-y: auto; padding-right: 0.4rem;
     }
 
     .audit-item-card {
       background: var(--bg-input); border: 1px solid var(--border-card);
       border-radius: 14px; padding: 1rem;
-      display: flex; flex-direction: column; gap: 0.4rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
       transition: all 0.2s ease;
     }
     .audit-item-card:hover { border-color: var(--accent-cyan); }
@@ -269,6 +302,46 @@
       border-top: 1px solid #e2e8f0; padding-top: 1rem; text-align: center;
       font-size: 0.75rem; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;
     }
+
+    /* ESTILOS VENTANA EMERGENTE (MODAL) */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 2000; padding: 1.5rem;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      width: 100%; max-width: 880px;
+      max-height: 90vh; overflow-y: auto;
+      display: flex; flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+
+    .modal-header {
+      padding: 1.2rem 1.8rem;
+      border-bottom: 1px solid var(--border-card);
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--bg-input);
+      position: sticky; top: 0; z-index: 10;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .close-modal-btn {
+      background: none; border: none;
+      color: var(--text-muted); font-size: 1.5rem;
+      cursor: pointer; transition: color 0.2s;
+    }
+    .close-modal-btn:hover { color: var(--accent-red); }
   </style>
 </head>
 <body>
@@ -314,9 +387,15 @@
     <div class="invoice-grid">
       <!-- AUDITORÍA DE FACTURAS (PANEL IZQUIERDO) -->
       <aside class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
           <h2 style="font-family:'Outfit', sans-serif; font-size: 1.15rem;"><i class="fas fa-list-check" style="color:var(--accent-cyan);"></i> Auditoría de Facturas</h2>
           <span style="font-size:0.75rem; color:var(--text-muted);" id="invoice-count-badge">0 emitidas</span>
+        </div>
+
+        <!-- BUSCADOR EN AUDITORÍA -->
+        <div class="audit-filter-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="input-audit-search" class="audit-filter-input" placeholder="Filtrar por Código PROPI, DNI o Nombre..." oninput="renderAuditInvoiceList()">
         </div>
 
         <div class="invoice-audit-list" id="audit-invoice-list">
@@ -442,6 +521,28 @@
     </div>
   </main>
 
+  <!-- VENTANA EMERGENTE (MODAL CHEQUEAR FACTURA) -->
+  <div id="modal-check-invoice" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-family:'Outfit', sans-serif; font-size:1.1rem; display:flex; align-items:center; gap:0.6rem;">
+          <i class="fas fa-magnifying-glass" style="color:var(--accent-cyan);"></i> Auditoría de Factura en Ventana Emergente
+        </h3>
+        <button class="close-modal-btn" onclick="closeCheckModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; align-items:center;">
+        <div style="width:100%; display:flex; justify-content:flex-end; margin-bottom:1rem;">
+          <button class="btn-action" onclick="downloadModalPDF()">
+            <i class="fas fa-download"></i> Descargar Esta Factura PDF
+          </button>
+        </div>
+        <div id="modal-pdf-container" style="width:100%; display:flex; justify-content:center;">
+          <!-- Aquí se clona dinámicamente la factura para ser visualizada -->
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     /* DATOS LOCALSTORAGE */
     let clients = JSON.parse(localStorage.getItem("propigestion_clientes")) || [];
@@ -528,12 +629,10 @@
         return;
       }
 
-      // Normalizar input (Ej: "4251" -> "#4251PROPI" o "#4251PROPI" -> "#4251PROPI")
       let cleanCode = rawInput;
       if (!cleanCode.startsWith("#")) cleanCode = "#" + cleanCode;
       if (!cleanCode.endsWith("PROPI")) cleanCode = cleanCode + "PROPI";
 
-      // Buscar en array de créditos
       const credit = credits.find(c => c.propiCode.toUpperCase() === cleanCode || c.propiCode.replace("#","").replace("PROPI","") === rawInput.replace("#","").replace("PROPI",""));
 
       if (!credit) {
@@ -543,8 +642,6 @@
 
       currentActiveCredit = credit;
       renderInvoicePDF(credit);
-
-      // Registrar o actualizar auditoría de factura
       registerInvoiceAudit(credit);
     }
 
@@ -625,6 +722,49 @@
       html2pdf().set(opt).from(element).save();
     }
 
+    /* ABRIR FACTURA EN VENTANA EMERGENTE (MODAL CHEQUEAR) */
+    function openCheckModal(creditId) {
+      const credit = credits.find(c => c.id === creditId);
+      if (!credit) {
+        alert("No se encontró el registro del crédito asociado.");
+        return;
+      }
+
+      currentActiveCredit = credit;
+      renderInvoicePDF(credit);
+
+      // Clonar la factura al contenedor del modal
+      const modalContainer = document.getElementById("modal-pdf-container");
+      modalContainer.innerHTML = "";
+      
+      const pdfClone = document.getElementById("pdf-template").cloneNode(true);
+      pdfClone.id = "pdf-template-modal";
+      pdfClone.style.display = "block";
+      
+      modalContainer.appendChild(pdfClone);
+
+      document.getElementById("modal-check-invoice").classList.add("active");
+    }
+
+    function closeCheckModal() {
+      document.getElementById("modal-check-invoice").classList.remove("active");
+    }
+
+    function downloadModalPDF() {
+      const modalPdfElement = document.getElementById("pdf-template-modal");
+      if (!modalPdfElement || !currentActiveCredit) return;
+
+      const opt = {
+        margin:       [0.3, 0.3, 0.3, 0.3],
+        filename:     `Factura_${currentActiveCredit.propiCode}_PROPI.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(modalPdfElement).save();
+    }
+
     /* REGISTRO Y AUDITORÍA DE FACTURAS (PANEL IZQUIERDO) */
     function registerInvoiceAudit(credit) {
       const client = clients.find(cl => cl.id == credit.clientId) || {};
@@ -642,11 +782,10 @@
           clientDni: clientDni,
           amountReturn: credit.amountReturn,
           dateIssued: `${now.toLocaleDateString('es-AR')} ${now.toLocaleTimeString('es-AR')}`,
-          delivered: false // Estado por defecto: Pendiente de entrega
+          delivered: false
         };
         invoices.unshift(newInvoice);
       } else {
-        // Si la factura ya existía en la lista, nos aseguramos de actualizar el DNI por si cambio/completo datos
         invoices[existingIndex].clientDni = clientDni;
       }
 
@@ -668,16 +807,24 @@
     function renderAuditInvoiceList() {
       const container = document.getElementById("audit-invoice-list");
       const badge = document.getElementById("invoice-count-badge");
+      const filterTerm = (document.getElementById("input-audit-search")?.value || "").trim().toLowerCase();
       
-      badge.innerText = `${invoices.length} emitidas`;
+      const filteredInvoices = invoices.filter(inv => {
+        const codeMatch = (inv.propiCode || "").toLowerCase().includes(filterTerm);
+        const dniMatch = (inv.clientDni || "").toLowerCase().includes(filterTerm);
+        const nameMatch = (inv.clientName || "").toLowerCase().includes(filterTerm);
+        return codeMatch || dniMatch || nameMatch;
+      });
+
+      badge.innerText = `${filteredInvoices.length} de ${invoices.length} emitidas`;
       container.innerHTML = "";
 
-      if (invoices.length === 0) {
-        container.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:1rem 0;">No se han generado facturas aún.</p>`;
+      if (filteredInvoices.length === 0) {
+        container.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:1rem 0; text-align:center;">No se encontraron facturas coincidentes.</p>`;
         return;
       }
 
-      invoices.forEach(inv => {
+      filteredInvoices.forEach(inv => {
         const item = document.createElement("div");
         item.className = "audit-item-card";
         item.innerHTML = `
@@ -692,9 +839,11 @@
           <div style="font-size:0.78rem; color:var(--accent-cyan); font-weight:500;">
             <i class="fas fa-id-card" style="font-size:0.75rem;"></i> DNI: ${inv.clientDni || '---'}
           </div>
-          <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-top:0.2rem;">
-            <span>Monto: $${Number(inv.amountReturn).toLocaleString()}</span>
-            <span>${inv.dateIssued.split(' ')[0]}</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.3rem;">
+            <span style="font-size:0.78rem; color:var(--text-muted);">Monto: $${Number(inv.amountReturn).toLocaleString()}</span>
+            <button class="btn-check" onclick="openCheckModal(${inv.creditId})">
+              <i class="fas fa-eye"></i> Chequear
+            </button>
           </div>
         `;
         container.appendChild(item);
