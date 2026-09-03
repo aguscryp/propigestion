@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propigestion - Control de Créditos</title>
+  
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root[data-theme="dark"] {
+      --bg-main: #0b0f19;
+      --bg-card: rgba(18, 26, 43, 0.75);
+      --bg-input: rgba(0, 0, 0, 0.3);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f2fe;
+      --accent-blue: #4facfe;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --header-bg: rgba(11, 15, 25, 0.85);
+      --sidebar-bg: rgba(11, 15, 25, 0.95);
+      --row-hover: rgba(255, 255, 255, 0.04);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+    }
+
+    :root[data-theme="light"] {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-input: #f1f5f9;
+      --border-card: #e2e8f0;
+      --accent-cyan: #0284c7;
+      --accent-blue: #2563eb;
+      --accent-green: #059669;
+      --accent-orange: #d97706;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --header-bg: rgba(255, 255, 255, 0.9);
+      --sidebar-bg: #ffffff;
+      --row-hover: #f1f5f9;
+      --shadow-color: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* HEADER Y SIDEBAR */
+    header {
+      background: var(--header-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-card);
+      padding: 0.8rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 500;
+      box-shadow: 0 4px 20px var(--shadow-color);
+    }
+
+    .brand-container { display: flex; align-items: center; gap: 1.2rem; }
+    .hamburger-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-box { display: flex; align-items: center; gap: 0.8rem; }
+    .logo-p {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem; font-weight: 800; color: #0b0f19;
+    }
+    .logo-text { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700; }
+    .logo-text span { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .theme-toggle-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      padding: 0.6rem 1.2rem;
+      border-radius: 12px;
+      font-weight: 600; font-size: 0.88rem;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+
+    .sidebar-menu {
+      position: fixed; top: 0; left: -300px; width: 300px; height: 100vh;
+      background: var(--sidebar-bg); backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-card);
+      transition: left 0.35s ease; z-index: 1000;
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .sidebar-menu.active { left: 0; }
+    .sidebar-header { padding: 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-card); }
+    .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .menu-list { list-style: none; padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .menu-item-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.2rem; color: var(--text-muted); background: transparent; border: none; border-radius: 10px; cursor: pointer; text-decoration: none; font-size: 0.95rem; }
+    .menu-item-btn:hover { background: var(--row-hover); color: var(--text-main); }
+    .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; z-index: 999; }
+    .sidebar-overlay.active { display: block; }
+
+    /* LAYOUT Y CONTENIDO */
+    .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
+    
+    .page-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .page-title h1 { font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 700; display: flex; align-items: center; gap: 0.8rem; }
+    .page-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem; }
+
+    .btn-create-credit {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #0b0f19; border: none;
+      padding: 0.85rem 1.6rem; border-radius: 14px;
+      font-weight: 700; font-size: 0.95rem;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 0.7rem;
+      box-shadow: 0 8px 20px rgba(0, 242, 254, 0.25);
+    }
+    .btn-create-credit:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0, 242, 254, 0.4); }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 1.8rem;
+    }
+    @media (max-width: 1024px) { .control-grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px var(--shadow-color);
+    }
+
+    /* MINI CALENDARIO */
+    .calendar-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.2rem;
+    }
+    .calendar-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.1rem; }
+    .calendar-nav-btn {
+      background: var(--bg-input); border: 1px solid var(--border-card);
+      color: var(--text-main); width: 32px; height: 32px; border-radius: 8px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .calendar-nav-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+    
+    .calendar-days-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
+    }
+    .day-name { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; padding-bottom: 8px; }
+    .day-number {
+      padding: 10px 0; border-radius: 10px; font-size: 0.88rem; font-weight: 500;
+      cursor: pointer; position: relative; background: transparent;
+    }
+    .day-number:hover { background: var(--row-hover); }
+    .day-number.selected {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #0b0f19; font-weight: 700;
+    }
+    .day-number.has-credit::after {
+      content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+      width: 5px; height: 5px; border-radius: 50%; background: var(--accent-orange);
+    }
+
+    /* TIMELINE VERTICAL FACHERO */
+    .timeline-container { position: relative; padding-left: 20px; margin-top: 1rem; }
+    .timeline-container::before {
+      content: ''; position: absolute; left: 18px; top: 15px; bottom: 15px;
+      width: 3px; background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-blue), transparent);
+      border-radius: 2px;
+    }
+
+    .timeline-item {
+      position: relative; margin-bottom: 1.8rem; padding-left: 30px;
+    }
+    .timeline-dot {
+      position: absolute; left: -11px; top: 4px; width: 22px; height: 22px;
+      border-radius: 50%; background: var(--bg-card); border: 3px solid var(--accent-cyan);
+      display: flex; align-items: center; justify-content: center; z-index: 2;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+    }
+    .timeline-dot.completed { border-color: var(--accent-green); background: var(--accent-green); color: #fff; font-size: 0.6rem; }
+    
+    .timeline-card {
+      background: var(--bg-input); border: 1px solid var(--border-card);
+      border-radius: 16px; padding: 1.2rem;
+      position: relative; transition: all 0.25s ease;
+    }
+    .timeline-card:hover { border-color: var(--accent-cyan); transform: translateX(5px); }
+    
+    .timeline-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem; }
+    .client-info-box { display: flex; align-items: center; gap: 0.8rem; }
+    .client-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #0b0f19; font-weight: 700; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; flex-shrink: 0;
+    }
+    .client-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .credit-badge {
+      background: rgba(0, 242, 254, 0.1); border: 1px solid rgba(0, 242, 254, 0.2);
+      color: var(--accent-cyan); padding: 0.25rem 0.6rem; border-radius: 8px;
+      font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+    }
+
+    .timeline-details {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.8rem; margin: 0.8rem 0; padding: 0.8rem;
+      background: rgba(0, 0, 0, 0.2); border-radius: 10px;
+    }
+    .detail-item label { font-size: 0.72rem; color: var(--text-muted); display: block; }
+    .detail-item span { font-size: 0.92rem; font-weight: 600; }
+
+    .audit-stamp {
+      font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem;
+      margin-top: 0.6rem; border-top: 1px dashed var(--border-card); padding-top: 0.6rem;
+    }
+
+    /* MODAL FORMULARIO */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;
+      z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s ease; padding: 1rem;
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+
+    .modal-box {
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: 24px; width: 100%; max-width: 650px;
+      box-shadow: 0 25px 50px var(--shadow-color);
+      transform: scale(0.95); transition: transform 0.3s ease; overflow: hidden;
+    }
+    .modal-overlay.active .modal-box { transform: scale(1); }
+
+    .modal-header {
+      padding: 1.2rem 1.8rem; border-bottom: 1px solid var(--border-card);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-input);
+    }
+    .modal-header h3 { font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; }
+    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
+
+    .modal-body { padding: 1.5rem 1.8rem; max-height: 75vh; overflow-y: auto; }
+    
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+    .form-group label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); }
+    .input-control {
+      background: var(--bg-input); border: 1px solid var(--border-card);
+      border-radius: 12px; padding: 0.75rem 1rem; color: var(--text-main);
+      font-size: 0.92rem; outline: none; width: 100%;
+    }
+    .input-control:focus { border-color: var(--accent-cyan); }
+
+    .audit-box {
+      background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.15);
+      border-radius: 12px; padding: 0.8rem 1rem; margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.8rem; font-size: 0.82rem; color: var(--accent-cyan);
+    }
+
+    .modal-footer {
+      padding: 1rem 1.8rem; border-top: 1px solid var(--border-card);
+      background: var(--bg-input); display: flex; justify-content: flex-end; gap: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-container">
+      <button id="hamburger-btn" class="hamburger-btn"><i class="fas fa-bars"></i></button>
+      <div class="logo-box">
+        <div class="logo-p">P</div>
+        <div class="logo-text">Propi<span>gestion</span></div>
+      </div>
+    </div>
+    <button id="theme-toggle" class="theme-toggle-btn">
+      <i class="fas fa-moon" id="theme-icon"></i><span id="theme-text">Modo Oscuro</span>
+    </button>
+  </header>
+
+  <!-- SIDEBAR DINÁMICO -->
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
+  <nav id="sidebar-menu" class="sidebar-menu"></nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container">
+    <div class="page-header">
+      <div class="page-title">
+        <h1><i class="fas fa-sliders" style="color: var(--accent-cyan);"></i> Control de Créditos y Agenda</h1>
+        <p>Monitoreo diario de vencimientos e itinerario vertical de cartera.</p>
+      </div>
+      <button class="btn-create-credit" onclick="openCreditModal()">
+        <i class="fas fa-plus-circle" style="font-size: 1.1rem;"></i> Crear Crédito
+      </button>
+    </div>
+
+    <div class="control-grid">
+      <!-- CALENDARIO LATERAL Y FILTROS -->
+      <aside>
+        <div class="card">
+          <div class="calendar-header">
+            <button class="calendar-nav-btn" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="calendar-title" id="calendar-month-year">---</div>
+            <button class="calendar-nav-btn" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="calendar-days-grid" id="calendar-days"></div>
+          <button class="btn-create-credit" style="width: 100%; margin-top: 1.2rem; background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-card); box-shadow:none;" onclick="resetCalendarFilter()">
+            <i class="fas fa-calendar-day"></i> Ver Todos los Días
+          </button>
+        </div>
+      </aside>
+
+      <!-- TIMELINE VERTICAL DE ITINERARIOS -->
+      <section class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h2 style="font-family:'Outfit', sans-serif; font-size: 1.3rem;" id="timeline-title">Itinerario General de Créditos</h2>
+          <span style="font-size:0.85rem; color:var(--text-muted);" id="credits-count-badge">0 créditos</span>
+        </div>
+
+        <div class="timeline-container" id="timeline-list">
+          <!-- Items generados dinámicamente -->
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- MODAL: CREAR CRÉDITO -->
+  <div class="modal-overlay" id="credit-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fas fa-file-invoice-dollar" style="color: var(--accent-cyan);"></i> Nuevo Registro de Crédito</h3>
+        <button class="modal-close" onclick="closeCreditModal()">&times;</button>
+      </div>
+      
+      <form id="credit-form">
+        <div class="modal-body">
+          
+          <div class="audit-box">
+            <i class="fas fa-shield-halved" style="font-size:1.2rem;"></i>
+            <div>
+              <strong>Auditoría Oficial Automática:</strong>
+              <div id="audit-timestamp-text">Generando fecha y hora de entrega...</div>
+            </div>
+          </div>
+
+          <!-- SELECCIONAR CLIENTE -->
+          <div class="form-group">
+            <label>Cliente Registrado *</label>
+            <select id="credit-client-select" class="input-control" required onchange="autofillClientData()">
+              <option value="">-- Seleccionar de Cartera de Clientes --</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Correo Electrónico</label>
+              <input type="email" id="credit-email" class="input-control" placeholder="cliente@correo.com">
+            </div>
+            <div class="form-group">
+              <label>Domicilio (Opcional)</label>
+              <input type="text" id="credit-address" class="input-control" placeholder="Ej. Av. Corrientes 1234">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tipo de Crédito *</label>
+              <select id="credit-type" class="input-control" required>
+                <option value="Prestamo Personal">Préstamo Personal</option>
+                <option value="Credito Celular">Crédito Celular</option>
+                <option value="Pago Unico">A un Solo Pago</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Modalidad / Frecuencia *</label>
+              <select id="credit-frequency" class="input-control" required>
+                <option value="Mensual">Cuotas Mensuales</option>
+                <option value="Quincenal">Cuotas Quincenales</option>
+                <option value="Semanal">Cuotas Semanales</option>
+                <option value="Unico">Pago Único Final</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Monto Prestado ($ ARS) *</label>
+              <input type="number" id="credit-amount-given" class="input-control" placeholder="Ej. 50000" required>
+            </div>
+            <div class="form-group">
+              <label>Monto a Devolver Total ($ ARS) *</label>
+              <input type="number" id="credit-amount-return" class="input-control" placeholder="Ej. 65000" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha Primer Vencimiento / Cobro *</label>
+              <input type="date" id="credit-due-date" class="input-control" required>
+            </div>
+            <div class="form-group">
+              <label>Cantidad de Cuotas</label>
+              <input type="number" id="credit-installments" class="input-control" value="1" min="1">
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="calendar-nav-btn" style="width:auto; padding:0 1rem;" onclick="closeCreditModal()">Cancelar</button>
+          <button type="submit" class="btn-create-credit"><i class="fas fa-check"></i> Registrar Crédito</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    /* DATOS LOCALSTORAGE */
+    let clients = JSON.parse(localStorage.getItem("propigestion_clientes")) || [];
+    let credits = JSON.parse(localStorage.getItem("propigestion_creditos")) || [];
+
+    let currentDate = new Date();
+    let selectedDateFilter = null;
+
+    const defaultMenuItems = [
+      { id: 1, nombre: "Dashboard", url: "index.html", icono: "fas fa-chart-line", subpaginas: [] },
+      { id: 2, nombre: "Cartera de Clientes", url: "clientes.html", icono: "fas fa-users", subpaginas: [] },
+      { id: 3, nombre: "Control Créditos", url: "control.html", icono: "fas fa-sliders", subpaginas: [] },
+      { id: 4, nombre: "Configuración Menú", url: "menu.html", icono: "fas fa-bars-staggered", subpaginas: [] }
+    ];
+
+    /* CONFIGURACIÓN DE TEMA */
+    function initTheme() {
+      const currentTheme = localStorage.getItem("propigestion_theme") || "dark";
+      document.documentElement.setAttribute("data-theme", currentTheme);
+      const icon = document.getElementById("theme-icon");
+      const text = document.getElementById("theme-text");
+      icon.className = currentTheme === "light" ? "fas fa-sun" : "fas fa-moon";
+      text.innerText = currentTheme === "light" ? "Modo Claro" : "Modo Oscuro";
+    }
+
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+      const activeTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = activeTheme === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("propigestion_theme", newTheme);
+      initTheme();
+    });
+
+    /* SIDEBAR */
+    function renderSidebarMenu() {
+      const sidebar = document.getElementById("sidebar-menu");
+      const storedMenu = localStorage.getItem("propigestion_menu");
+      const items = storedMenu ? JSON.parse(storedMenu) : defaultMenuItems;
+
+      let html = `
+        <div class="sidebar-header">
+          <div class="logo-box"><div class="logo-p">P</div><div class="logo-text">Propi<span>gestion</span></div></div>
+          <button id="close-btn" class="close-btn">&times;</button>
+        </div>
+        <ul class="menu-list">
+          ${items.map(i => `
+            <li class="menu-item">
+              <a href="${i.url}" class="menu-item-btn">
+                <div class="brand-container"><i class="${i.icono}" style="color:var(--accent-cyan); width:20px;"></i> <span>${i.nombre}</span></div>
+              </a>
+            </li>
+          `).join('')}
+        </ul>
+      `;
+      sidebar.innerHTML = html;
+
+      document.getElementById("hamburger-btn").onclick = () => {
+        sidebar.classList.add("active");
+        document.getElementById("sidebar-overlay").classList.add("active");
+      };
+      document.getElementById("close-btn").onclick = closeSidebar;
+      document.getElementById("sidebar-overlay").onclick = closeSidebar;
+    }
+
+    function closeSidebar() {
+      document.getElementById("sidebar-menu").classList.remove("active");
+      document.getElementById("sidebar-overlay").classList.remove("active");
+    }
+
+    /* MINI CALENDARIO */
+    function renderCalendar() {
+      const daysContainer = document.getElementById("calendar-days");
+      const monthYearTitle = document.getElementById("calendar-month-year");
+      
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+      monthYearTitle.innerText = `${monthNames[month]} ${year}`;
+
+      daysContainer.innerHTML = "";
+      
+      const dayLabels = ["D", "L", "M", "M", "J", "V", "S"];
+      dayLabels.forEach(d => {
+        daysContainer.innerHTML += `<div class="day-name">${d}</div>`;
+      });
+
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+
+      for (let i = 0; i < firstDayIndex; i++) {
+        daysContainer.innerHTML += `<div></div>`;
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const hasCredit = credits.some(c => c.dueDate === dateStr);
+        const isSelected = selectedDateFilter === dateStr;
+
+        const dayEl = document.createElement("div");
+        dayEl.className = `day-number ${hasCredit ? 'has-credit' : ''} ${isSelected ? 'selected' : ''}`;
+        dayEl.innerText = day;
+        dayEl.onclick = () => filterByDate(dateStr);
+        daysContainer.appendChild(dayEl);
+      }
+    }
+
+    function changeMonth(offset) {
+      currentDate.setMonth(currentDate.getMonth() + offset);
+      renderCalendar();
+    }
+
+    function filterByDate(dateStr) {
+      selectedDateFilter = dateStr;
+      renderCalendar();
+      renderTimeline();
+    }
+
+    function resetCalendarFilter() {
+      selectedDateFilter = null;
+      renderCalendar();
+      renderTimeline();
+    }
+
+    /* TIMELINE VERTICAL FACHERO */
+    function renderTimeline() {
+      const container = document.getElementById("timeline-list");
+      const title = document.getElementById("timeline-title");
+      const badge = document.getElementById("credits-count-badge");
+
+      let filteredCredits = credits;
+      if (selectedDateFilter) {
+        filteredCredits = credits.filter(c => c.dueDate === selectedDateFilter);
+        title.innerText = `Créditos para el día: ${selectedDateFilter}`;
+      } else {
+        title.innerText = "Itinerario General de Créditos";
+      }
+
+      badge.innerText = `${filteredCredits.length} créditos`;
+      container.innerHTML = "";
+
+      if (filteredCredits.length === 0) {
+        container.innerHTML = `<p style="color:var(--text-muted); padding:2rem 0;">No hay registros de créditos para el filtro seleccionado.</p>`;
+        return;
+      }
+
+      filteredCredits.forEach(c => {
+        const client = clients.find(cl => cl.id == c.clientId) || { nombre: c.clientName, fotoPerfil: null };
+        const avatarHTML = client.fotoPerfil 
+          ? `<img src="${client.fotoPerfil}" alt="${client.nombre}">` 
+          : client.nombre ? client.nombre.substring(0,2).toUpperCase() : 'CL';
+
+        const item = document.createElement("div");
+        item.className = "timeline-item";
+        item.innerHTML = `
+          <div class="timeline-dot"><i class="fas fa-clock"></i></div>
+          <div class="timeline-card">
+            <div class="timeline-header">
+              <div class="client-info-box">
+                <div class="client-avatar">${avatarHTML}</div>
+                <div>
+                  <h4 style="font-weight:700;">${client.nombre || 'Cliente General'}</h4>
+                  <p style="font-size:0.78rem; color:var(--text-muted);">${c.type} - ${c.frequency}</p>
+                </div>
+              </div>
+              <span class="credit-badge">${c.installments > 1 ? c.installments + ' Cuotas' : 'Pago Único'}</span>
+            </div>
+
+            <div class="timeline-details">
+              <div class="detail-item"><label>Prestado</label><span>$${Number(c.amountGiven).toLocaleString()}</span></div>
+              <div class="detail-item"><label>A Devolver</label><span style="color:var(--accent-cyan);">$${Number(c.amountReturn).toLocaleString()}</span></div>
+              <div class="detail-item"><label>Primer Vencimiento</label><span>${c.dueDate}</span></div>
+            </div>
+
+            ${c.address ? `<p style="font-size:0.8rem; color:var(--text-muted);"><i class="fas fa-location-dot"></i> ${c.address}</p>` : ''}
+
+            <div class="audit-stamp">
+              <i class="fas fa-shield-check"></i> Auditoría Oficial: ${c.auditStamp}
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    /* MODAL Y FORMULARIO DE CRÉDITOS */
+    function openCreditModal() {
+      populateClientSelect();
+      const now = new Date();
+      const auditText = `${now.toLocaleDateString('es-AR')} a las ${now.toLocaleTimeString('es-AR')} hs`;
+      document.getElementById("audit-timestamp-text").innerText = auditText;
+
+      document.getElementById("credit-modal").classList.add("active");
+    }
+
+    function closeCreditModal() {
+      document.getElementById("credit-modal").classList.remove("active");
+      document.getElementById("credit-form").reset();
+    }
+
+    function populateClientSelect() {
+      const select = document.getElementById("credit-client-select");
+      select.innerHTML = '<option value="">-- Seleccionar de Cartera de Clientes --</option>';
+      clients.forEach(c => {
+        select.innerHTML += `<option value="${c.id}">${c.nombre} (DNI: ${c.dni})</option>`;
+      });
+    }
+
+    function autofillClientData() {
+      const selectedId = document.getElementById("credit-client-select").value;
+      const client = clients.find(c => c.id == selectedId);
+      if (client) {
+        if (client.email) document.getElementById("credit-email").value = client.email;
+      }
+    }
+
+    document.getElementById("credit-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const clientId = document.getElementById("credit-client-select").value;
+      const client = clients.find(c => c.id == clientId);
+
+      const now = new Date();
+      const auditStamp = `${now.toLocaleDateString('es-AR')} ${now.toLocaleTimeString('es-AR')}`;
+
+      const newCredit = {
+        id: Date.now(),
+        clientId: clientId,
+        clientName: client ? client.nombre : "Cliente Directo",
+        email: document.getElementById("credit-email").value,
+        address: document.getElementById("credit-address").value,
+        type: document.getElementById("credit-type").value,
+        frequency: document.getElementById("credit-frequency").value,
+        amountGiven: document.getElementById("credit-amount-given").value,
+        amountReturn: document.getElementById("credit-amount-return").value,
+        dueDate: document.getElementById("credit-due-date").value,
+        installments: document.getElementById("credit-installments").value,
+        auditStamp: auditStamp
+      };
+
+      credits.unshift(newCredit);
+      localStorage.setItem("propigestion_creditos", JSON.stringify(credits));
+
+      closeCreditModal();
+      renderCalendar();
+      renderTimeline();
+    });
+
+    /* INICIALIZACIÓN */
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      renderSidebarMenu();
+      renderCalendar();
+      renderTimeline();
+    });
+  </script>
+</body>
+</html>
