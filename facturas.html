@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propigestion - Generador y Auditoría de Facturas</title>
+  
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <!-- html2pdf.js para exportación en PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    :root[data-theme="dark"] {
+      --bg-main: #0b0f19;
+      --bg-card: rgba(18, 26, 43, 0.75);
+      --bg-input: rgba(0, 0, 0, 0.3);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f2fe;
+      --accent-blue: #4facfe;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #8b5cf6;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --header-bg: rgba(11, 15, 25, 0.85);
+      --sidebar-bg: rgba(11, 15, 25, 0.95);
+      --row-hover: rgba(255, 255, 255, 0.04);
+      --shadow-color: rgba(0, 0, 0, 0.5);
+    }
+
+    :root[data-theme="light"] {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-input: #f1f5f9;
+      --border-card: #e2e8f0;
+      --accent-cyan: #0284c7;
+      --accent-blue: #2563eb;
+      --accent-green: #059669;
+      --accent-orange: #d97706;
+      --accent-red: #dc2626;
+      --accent-purple: #7c3aed;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --header-bg: rgba(255, 255, 255, 0.9);
+      --sidebar-bg: #ffffff;
+      --row-hover: #f1f5f9;
+      --shadow-color: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* HEADER Y SIDEBAR */
+    header {
+      background: var(--header-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-card);
+      padding: 0.8rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 500;
+      box-shadow: 0 4px 20px var(--shadow-color);
+    }
+
+    .brand-container { display: flex; align-items: center; gap: 1.2rem; }
+    .hamburger-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-box { display: flex; align-items: center; gap: 0.8rem; }
+    .logo-p {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem; font-weight: 800; color: #0b0f19;
+    }
+    .logo-text { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700; }
+    .logo-text span { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .theme-toggle-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      padding: 0.6rem 1.2rem;
+      border-radius: 12px;
+      font-weight: 600; font-size: 0.88rem;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+
+    .sidebar-menu {
+      position: fixed; top: 0; left: -300px; width: 300px; height: 100vh;
+      background: var(--sidebar-bg); backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-card);
+      transition: left 0.35s ease; z-index: 1000;
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .sidebar-menu.active { left: 0; }
+    .sidebar-header { padding: 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-card); }
+    .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .menu-list { list-style: none; padding: 1.5rem 1rem; display: flex; flex-direction: flex-start; flex-direction: column; gap: 0.5rem; }
+    .menu-item-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.2rem; color: var(--text-muted); background: transparent; border: none; border-radius: 10px; cursor: pointer; text-decoration: none; font-size: 0.95rem; }
+    .menu-item-btn:hover { background: var(--row-hover); color: var(--text-main); }
+    .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; z-index: 999; }
+    .sidebar-overlay.active { display: block; }
+
+    /* LAYOUT Y CONTENIDO */
+    .container { max-width: 1400px; margin: 2rem auto; padding: 0 1.5rem; }
+    
+    .page-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .page-title h1 { font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 700; display: flex; align-items: center; gap: 0.8rem; }
+    .page-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem; }
+
+    .invoice-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.8rem;
+    }
+    @media (max-width: 1024px) { .invoice-grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px var(--shadow-color);
+    }
+
+    .search-box-container {
+      background: var(--bg-input);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      padding: 1.2rem;
+      margin-bottom: 1.5rem;
+      display: flex; gap: 0.8rem; flex-wrap: wrap;
+    }
+
+    .input-control {
+      background: var(--bg-main); border: 1px solid var(--border-card);
+      border-radius: 12px; padding: 0.75rem 1rem; color: var(--text-main);
+      font-size: 0.95rem; outline: none; flex: 1; min-width: 200px;
+    }
+    .input-control:focus { border-color: var(--accent-cyan); }
+
+    .btn-action {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #0b0f19; border: none;
+      padding: 0.75rem 1.5rem; border-radius: 12px;
+      font-weight: 700; font-size: 0.92rem;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 0.6rem;
+      box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+    }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 242, 254, 0.4); }
+
+    .btn-delivered {
+      background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-green); padding: 0.3rem 0.6rem; border-radius: 8px;
+      font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    }
+    .btn-pending {
+      background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--accent-orange); padding: 0.3rem 0.6rem; border-radius: 8px;
+      font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    }
+
+    /* LISTA AUDITORÍA FACTURAS (IZQUIERDA) */
+    .invoice-audit-list {
+      display: flex; flex-direction: column; gap: 0.8rem;
+      max-height: 650px; overflow-y: auto; padding-right: 0.4rem;
+    }
+
+    .audit-item-card {
+      background: var(--bg-input); border: 1px solid var(--border-card);
+      border-radius: 14px; padding: 1rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    .audit-item-card:hover { border-color: var(--accent-cyan); }
+
+    /* ESTILOS DEL PLANTILLA DE FACTURA PDF (DISEÑO PROFESIONAL) */
+    .pdf-preview-container {
+      background: #ffffff;
+      color: #1e293b;
+      border-radius: 12px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .pdf-header {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 3px solid #00f2fe; padding-bottom: 1.5rem; margin-bottom: 1.5rem;
+    }
+    .pdf-logo { display: flex; align-items: center; gap: 0.8rem; }
+    .pdf-logo-box {
+      width: 48px; height: 48px; background: linear-gradient(135deg, #00f2fe, #4facfe);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 800; color: #0b0f19;
+    }
+    .pdf-title-box h2 { font-family: 'Outfit', sans-serif; font-size: 1.8rem; color: #0f172a; font-weight: 800; text-align: right; }
+    .pdf-title-box p { font-size: 0.82rem; color: #64748b; text-align: right; }
+
+    .pdf-info-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+      padding: 1.2rem; margin-bottom: 1.5rem;
+    }
+    .pdf-info-block h4 { font-size: 0.8rem; text-transform: uppercase; color: #64748b; margin-bottom: 0.4rem; font-weight: 700; }
+    .pdf-info-block p { font-size: 0.92rem; font-weight: 600; color: #0f172a; margin-bottom: 0.2rem; }
+
+    .pdf-table {
+      width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;
+    }
+    .pdf-table th {
+      background: #0f172a; color: #ffffff; text-align: left;
+      padding: 0.8rem 1rem; font-size: 0.82rem; text-transform: uppercase;
+    }
+    .pdf-table td {
+      padding: 0.85rem 1rem; border-bottom: 1px solid #e2e8f0;
+      font-size: 0.9rem; color: #334155;
+    }
+
+    .pdf-totals-box {
+      margin-left: auto; width: 280px; background: #f1f5f9;
+      border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;
+    }
+    .pdf-total-row { display: flex; justify-content: space-between; padding: 0.4rem 0; font-size: 0.9rem; }
+    .pdf-total-row.final { border-top: 2px solid #0f172a; font-weight: 800; font-size: 1.1rem; color: #0f172a; margin-top: 0.4rem; padding-top: 0.6rem; }
+
+    .pdf-clauses {
+      background: #fafafa; border: 1px dashed #cbd5e1; border-radius: 10px;
+      padding: 1rem; font-size: 0.72rem; color: #64748b; line-height: 1.4; margin-bottom: 1.5rem;
+    }
+    .pdf-clauses h5 { color: #334155; font-size: 0.78rem; margin-bottom: 0.4rem; font-weight: 700; }
+
+    .pdf-footer {
+      border-top: 1px solid #e2e8f0; padding-top: 1rem; text-align: center;
+      font-size: 0.75rem; color: #94a3b8; display: flex; justify-content: space-between; align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-container">
+      <button id="hamburger-btn" class="hamburger-btn"><i class="fas fa-bars"></i></button>
+      <div class="logo-box">
+        <div class="logo-p">P</div>
+        <div class="logo-text">Propi<span>gestion</span></div>
+      </div>
+    </div>
+    <button id="theme-toggle" class="theme-toggle-btn">
+      <i class="fas fa-moon" id="theme-icon"></i><span id="theme-text">Modo Oscuro</span>
+    </button>
+  </header>
+
+  <!-- SIDEBAR DINÁMICO -->
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
+  <nav id="sidebar-menu" class="sidebar-menu"></nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container">
+    <div class="page-header">
+      <div class="page-title">
+        <h1><i class="fas fa-file-pdf" style="color: var(--accent-cyan);"></i> Generador de Facturas & Auditoría</h1>
+        <p>Emisión instantánea de comprobantes oficiales PROPI con historial crediticio incorporado.</p>
+      </div>
+    </div>
+
+    <!-- BUSCADOR DE CÓDIGO PROPI -->
+    <div class="search-box-container card">
+      <div style="flex:1; display:flex; gap:0.8rem; align-items:center;">
+        <i class="fas fa-barcode" style="font-size: 1.5rem; color: var(--accent-cyan);"></i>
+        <input type="text" id="input-propi-code" class="input-control" placeholder="Ingrese o pegue el Código de Crédito (Ej: #4251PROPI o 4251)">
+      </div>
+      <button class="btn-action" onclick="searchAndGenerateInvoice()">
+        <i class="fas fa-wand-magic-sparkles"></i> Reconocer y Generar Factura
+      </button>
+    </div>
+
+    <div class="invoice-grid">
+      <!-- AUDITORÍA DE FACTURAS (PANEL IZQUIERDO) -->
+      <aside class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+          <h2 style="font-family:'Outfit', sans-serif; font-size: 1.15rem;"><i class="fas fa-list-check" style="color:var(--accent-cyan);"></i> Auditoría de Facturas</h2>
+          <span style="font-size:0.75rem; color:var(--text-muted);" id="invoice-count-badge">0 emitidas</span>
+        </div>
+
+        <div class="invoice-audit-list" id="audit-invoice-list">
+          <!-- Elementos de auditoría de facturas generados dinámicamente -->
+        </div>
+      </aside>
+
+      <!-- VISTA PREVIA Y DESCARGA DEL PDF (PANEL DERECHO) -->
+      <section class="card" style="display:flex; flex-direction:column; align-items:center;">
+        <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+          <h2 style="font-family:'Outfit', sans-serif; font-size: 1.2rem;"><i class="fas fa-eye" style="color:var(--accent-cyan);"></i> Vista Previa del Documento PDF</h2>
+          <button class="btn-action" id="btn-download-pdf" style="display:none;" onclick="downloadPDF()">
+            <i class="fas fa-download"></i> Descargar Factura PDF
+          </button>
+        </div>
+
+        <!-- CONTENEDOR VACÍO / INICIAL -->
+        <div id="empty-state-pdf" style="padding: 4rem 1rem; text-align: center; color: var(--text-muted);">
+          <i class="fas fa-file-invoice-dollar" style="font-size: 3.5rem; color: var(--border-card); margin-bottom: 1rem; display:block;"></i>
+          <p>Ingrese un código de crédito PROPI válido arriba para previsualizar y exportar la factura.</p>
+        </div>
+
+        <!-- HOJA PDF INTERACTIVA (HTML TO PDF) -->
+        <div id="pdf-template" class="pdf-preview-container" style="display:none;">
+          <div class="pdf-header">
+            <div class="pdf-logo">
+              <div class="pdf-logo-box">P</div>
+              <div>
+                <h3 style="font-family:'Outfit', sans-serif; font-size:1.4rem; font-weight:800; color:#0f172a;">PROPI<span>GESTION</span></h3>
+                <p style="font-size:0.75rem; color:#64748b;">Soluciones Financieras & Créditos</p>
+              </div>
+            </div>
+            <div class="pdf-title-box">
+              <h2>FACTURA DE CRÉDITO</h2>
+              <p id="pdf-invoice-number">COMPROBANTE N° #0000</p>
+              <p id="pdf-invoice-date">FECHA EMISIÓN: --/--/----</p>
+            </div>
+          </div>
+
+          <!-- INFORMACIÓN DEL CLIENTE Y CRÉDITO -->
+          <div class="pdf-info-grid">
+            <div class="pdf-info-block">
+              <h4>Datos del Cliente</h4>
+              <p id="pdf-client-name">---</p>
+              <p id="pdf-client-dni" style="font-weight:400; font-size:0.85rem;">DNI: ---</p>
+              <p id="pdf-client-phone" style="font-weight:400; font-size:0.85rem;">Tel: ---</p>
+            </div>
+            <div class="pdf-info-block">
+              <h4>Detalle de la Operación</h4>
+              <p id="pdf-credit-code">Código: #0000PROPI</p>
+              <p id="pdf-credit-type" style="font-weight:400; font-size:0.85rem;">Tipo: ---</p>
+              <p id="pdf-credit-due" style="font-weight:700; color:#0284c7; font-size:0.88rem;">Vencimiento: --/--/----</p>
+            </div>
+          </div>
+
+          <!-- TABLA PRINCIPAL DE CRÉDITO -->
+          <table class="pdf-table">
+            <thead>
+              <tr>
+                <th>Descripción del Servicio</th>
+                <th>Modalidad</th>
+                <th>Monto Prestado</th>
+                <th>Total a Devolver</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="pdf-table-desc">Otorgamiento de Crédito Financiero PROPI</td>
+                <td id="pdf-table-freq">---</td>
+                <td id="pdf-table-given">$0</td>
+                <td id="pdf-table-return" style="font-weight:700; color:#0f172a;">$0</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="pdf-totals-box">
+            <div class="pdf-total-row"><span>Monto Capital:</span><span id="pdf-subtotal-given">$0</span></div>
+            <div class="pdf-total-row"><span>Interés / Recargo:</span><span id="pdf-subtotal-interest">$0</span></div>
+            <div class="pdf-total-row final"><span>Total Final:</span><span id="pdf-final-total">$0</span></div>
+          </div>
+
+          <!-- HISTORIAL CREDITICIO PREVIO DEL CLIENTE -->
+          <div style="margin-bottom:1.5rem;">
+            <h4 style="font-size:0.85rem; text-transform:uppercase; color:#0f172a; font-weight:800; margin-bottom:0.6rem; display:flex; align-items:center; gap:0.4rem;">
+              <i class="fas fa-history" style="color:#0284c7;"></i> Historial Crediticio Previo en PROPI
+            </h4>
+            <table class="pdf-table" style="font-size:0.8rem;" id="pdf-history-table">
+              <thead>
+                <tr style="background:#e2e8f0; color:#334155;">
+                  <th style="padding:0.5rem;">Código</th>
+                  <th style="padding:0.5rem;">Fecha Venc.</th>
+                  <th style="padding:0.5rem;">Monto Devuelto</th>
+                  <th style="padding:0.5rem;">Estado</th>
+                </tr>
+              </thead>
+              <tbody id="pdf-history-tbody">
+                <!-- Se autocompleta con créditos liquidados anteriores -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- CLÁUSULAS Y TÉRMINOS LEGALES -->
+          <div class="pdf-clauses">
+            <h5>TÉRMINOS Y CLÁUSULAS DE CONTRATO DE CRÉDITO PROPI:</h5>
+            <ol style="padding-left: 1.2rem;">
+              <li>El deudor declara haber recibido a entera satisfacción el importe citado en concepto de capital prestado.</li>
+              <li>El pago del importe total a devolver deberá hacerse efectivo en la fecha de vencimiento estipulada mediante los canales de transferencia/pago autorizados por PROPI.</li>
+              <li>El mora de pago generará recargos punitorios automáticos por cada día de atraso posterior a la fecha de vencimiento.</li>
+              <li>El presente comprobante posee carácter de liquidación de crédito y registro oficial de auditoría interna.</li>
+            </ol>
+          </div>
+
+          <!-- PIE DE PÁGINA Y SELLO DE AUDITORÍA -->
+          <div class="pdf-footer">
+            <div>
+              <strong>Auditoría Oficial PROPI:</strong> <span id="pdf-audit-stamp">--/--/---- --:--</span>
+            </div>
+            <div>Documento Generado Electrónicamente - PROPI GESTIÓN</div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <script>
+    /* DATOS LOCALSTORAGE */
+    let clients = JSON.parse(localStorage.getItem("propigestion_clientes")) || [];
+    let credits = JSON.parse(localStorage.getItem("propigestion_creditos")) || [];
+    let invoices = JSON.parse(localStorage.getItem("propigestion_facturas")) || [];
+
+    let currentActiveCredit = null;
+
+    const defaultMenuItems = [
+      { id: 1, nombre: "Dashboard", url: "index.html", icono: "fas fa-chart-line", subpaginas: [] },
+      { id: 2, nombre: "Cartera de Clientes", url: "clientes.html", icono: "fas fa-users", subpaginas: [] },
+      { id: 3, nombre: "Control Créditos", url: "control.html", icono: "fas fa-sliders", subpaginas: [] },
+      { id: 4, nombre: "Facturas & PDF", url: "facturas.html", icono: "fas fa-file-pdf", subpaginas: [] },
+      { id: 5, nombre: "Configuración Menú", url: "menu.html", icono: "fas fa-bars-staggered", subpaginas: [] }
+    ];
+
+    /* TEMA Y SIDEBAR */
+    function initTheme() {
+      const currentTheme = localStorage.getItem("propigestion_theme") || "dark";
+      document.documentElement.setAttribute("data-theme", currentTheme);
+      const icon = document.getElementById("theme-icon");
+      const text = document.getElementById("theme-text");
+      icon.className = currentTheme === "light" ? "fas fa-sun" : "fas fa-moon";
+      text.innerText = currentTheme === "light" ? "Modo Claro" : "Modo Oscuro";
+    }
+
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+      const activeTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = activeTheme === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("propigestion_theme", newTheme);
+      initTheme();
+    });
+
+    function renderSidebarMenu() {
+      const sidebar = document.getElementById("sidebar-menu");
+      const storedMenu = localStorage.getItem("propigestion_menu");
+      const items = storedMenu ? JSON.parse(storedMenu) : defaultMenuItems;
+
+      let html = `
+        <div class="sidebar-header">
+          <div class="logo-box"><div class="logo-p">P</div><div class="logo-text">Propi<span>gestion</span></div></div>
+          <button id="close-btn" class="close-btn">&times;</button>
+        </div>
+        <ul class="menu-list">
+          ${items.map(i => `
+            <li class="menu-item">
+              <a href="${i.url}" class="menu-item-btn">
+                <div class="brand-container"><i class="${i.icono}" style="color:var(--accent-cyan); width:20px;"></i> <span>${i.nombre}</span></div>
+              </a>
+            </li>
+          `).join('')}
+        </ul>
+      `;
+      sidebar.innerHTML = html;
+
+      document.getElementById("hamburger-btn").onclick = () => {
+        sidebar.classList.add("active");
+        document.getElementById("sidebar-overlay").classList.add("active");
+      };
+      document.getElementById("close-btn").onclick = closeSidebar;
+      document.getElementById("sidebar-overlay").onclick = closeSidebar;
+    }
+
+    function closeSidebar() {
+      document.getElementById("sidebar-menu").classList.remove("active");
+      document.getElementById("sidebar-overlay").classList.remove("active");
+    }
+
+    /* FORMATO DE FECHAS */
+    function formatWrittenDate(dateStr) {
+      if (!dateStr) return "Sin fecha";
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+      return dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    /* RECONOCIMIENTO Y GENERACIÓN DE FACTURA */
+    function searchAndGenerateInvoice() {
+      const rawInput = document.getElementById("input-propi-code").value.trim().toUpperCase();
+      if (!rawInput) {
+        alert("Por favor ingresa un código de crédito.");
+        return;
+      }
+
+      // Normalizar input (Ej: "4251" -> "#4251PROPI" o "#4251PROPI" -> "#4251PROPI")
+      let cleanCode = rawInput;
+      if (!cleanCode.startsWith("#")) cleanCode = "#" + cleanCode;
+      if (!cleanCode.endsWith("PROPI")) cleanCode = cleanCode + "PROPI";
+
+      // Buscar en array de créditos
+      const credit = credits.find(c => c.propiCode.toUpperCase() === cleanCode || c.propiCode.replace("#","").replace("PROPI","") === rawInput.replace("#","").replace("PROPI",""));
+
+      if (!credit) {
+        alert(`No se encontró ningún crédito registrado con el código ${rawInput}. Verifique en Control de Créditos.`);
+        return;
+      }
+
+      currentActiveCredit = credit;
+      renderInvoicePDF(credit);
+
+      // Registrar o actualizar auditoría de factura
+      registerInvoiceAudit(credit);
+    }
+
+    function renderInvoicePDF(credit) {
+      const client = clients.find(cl => cl.id == credit.clientId) || { nombre: credit.clientName, dni: credit.dni || '---', telefono: credit.phone || '---' };
+
+      document.getElementById("empty-state-pdf").style.display = "none";
+      document.getElementById("pdf-template").style.display = "block";
+      document.getElementById("btn-download-pdf").style.display = "inline-flex";
+
+      const now = new Date();
+      const invoiceNum = String(credit.id).slice(-5);
+
+      document.getElementById("pdf-invoice-number").innerText = `COMPROBANTE N° #${invoiceNum}`;
+      document.getElementById("pdf-invoice-date").innerText = `FECHA EMISIÓN: ${now.toLocaleDateString('es-AR')}`;
+
+      // Datos Cliente y Crédito
+      document.getElementById("pdf-client-name").innerText = client.nombre || credit.clientName;
+      document.getElementById("pdf-client-dni").innerText = `DNI / ID: ${client.dni || credit.dni || '---'}`;
+      document.getElementById("pdf-client-phone").innerText = `Teléfono: ${credit.phone || client.telefono || '---'}`;
+
+      document.getElementById("pdf-credit-code").innerText = `Código: ${credit.propiCode}`;
+      document.getElementById("pdf-credit-type").innerText = `Tipo: ${credit.type} (${credit.frequency})`;
+      document.getElementById("pdf-credit-due").innerText = `Vencimiento: ${formatWrittenDate(credit.dueDate)}`;
+
+      // Tabla Principal
+      document.getElementById("pdf-table-desc").innerText = `Otorgamiento de Crédito Financiero (${credit.type})`;
+      document.getElementById("pdf-table-freq").innerText = `${credit.frequency} (${credit.installments || 1} Cuotas)`;
+      document.getElementById("pdf-table-given").innerText = `$${Number(credit.amountGiven).toLocaleString()}`;
+      document.getElementById("pdf-table-return").innerText = `$${Number(credit.amountReturn).toLocaleString()}`;
+
+      // Totales
+      const given = parseFloat(credit.amountGiven) || 0;
+      const totalReturn = parseFloat(credit.amountReturn) || 0;
+      const interest = totalReturn - given;
+
+      document.getElementById("pdf-subtotal-given").innerText = `$${given.toLocaleString()}`;
+      document.getElementById("pdf-subtotal-interest").innerText = `$${interest.toLocaleString()}`;
+      document.getElementById("pdf-final-total").innerText = `$${totalReturn.toLocaleString()}`;
+
+      // Historial Crediticio Previo
+      const historyTbody = document.getElementById("pdf-history-tbody");
+      historyTbody.innerHTML = "";
+
+      const previousCredits = credits.filter(c => (c.clientId == credit.clientId || c.clientName === credit.clientName) && c.id !== credit.id);
+
+      if (previousCredits.length === 0) {
+        historyTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8; padding:0.6rem;">Primer crédito registrado con PROPI. Sin historial previo.</td></tr>`;
+      } else {
+        previousCredits.forEach(pc => {
+          historyTbody.innerHTML += `
+            <tr>
+              <td style="padding:0.4rem 0.5rem; font-weight:700;">${pc.propiCode}</td>
+              <td style="padding:0.4rem 0.5rem;">${pc.dueDate}</td>
+              <td style="padding:0.4rem 0.5rem;">$${Number(pc.amountReturn).toLocaleString()}</td>
+              <td style="padding:0.4rem 0.5rem;"><span style="color:${pc.status === 'Pagado' ? '#059669' : '#d97706'}; font-weight:700;">${pc.status.toUpperCase()}</span></td>
+            </tr>
+          `;
+        });
+      }
+
+      document.getElementById("pdf-audit-stamp").innerText = credit.auditStamp || `${now.toLocaleDateString('es-AR')} ${now.toLocaleTimeString('es-AR')}`;
+    }
+
+    /* EXPORTAR PDF CON HTML2PDF */
+    function downloadPDF() {
+      if (!currentActiveCredit) return;
+      const element = document.getElementById("pdf-template");
+
+      const opt = {
+        margin:       [0.3, 0.3, 0.3, 0.3],
+        filename:     `Factura_${currentActiveCredit.propiCode}_PROPI.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+    }
+
+    /* REGISTRO Y AUDITORÍA DE FACTURAS (PANEL IZQUIERDO) */
+    function registerInvoiceAudit(credit) {
+      const existing = invoices.find(inv => inv.creditId === credit.id);
+      if (!existing) {
+        const now = new Date();
+        const newInvoice = {
+          id: Date.now(),
+          creditId: credit.id,
+          propiCode: credit.propiCode,
+          clientName: credit.clientName,
+          amountReturn: credit.amountReturn,
+          dateIssued: `${now.toLocaleDateString('es-AR')} ${now.toLocaleTimeString('es-AR')}`,
+          delivered: false // Estado por defecto: Pendiente de entrega
+        };
+        invoices.unshift(newInvoice);
+        localStorage.setItem("propigestion_facturas", JSON.stringify(invoices));
+      }
+      renderAuditInvoiceList();
+    }
+
+    function toggleDeliveryStatus(invoiceId) {
+      invoices = invoices.map(inv => {
+        if (inv.id === invoiceId) {
+          return { ...inv, delivered: !inv.delivered };
+        }
+        return inv;
+      });
+      localStorage.setItem("propigestion_facturas", JSON.stringify(invoices));
+      renderAuditInvoiceList();
+    }
+
+    function renderAuditInvoiceList() {
+      const container = document.getElementById("audit-invoice-list");
+      const badge = document.getElementById("invoice-count-badge");
+      
+      badge.innerText = `${invoices.length} emitidas`;
+      container.innerHTML = "";
+
+      if (invoices.length === 0) {
+        container.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:1rem 0;">No se han generado facturas aún.</p>`;
+        return;
+      }
+
+      invoices.forEach(inv => {
+        const item = document.createElement("div");
+        item.className = "audit-item-card";
+        item.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="color:var(--accent-cyan); font-family:'Outfit', sans-serif;">${inv.propiCode}</strong>
+            <button class="${inv.delivered ? 'btn-delivered' : 'btn-pending'}" onclick="toggleDeliveryStatus(${inv.id})">
+              <i class="fas ${inv.delivered ? 'fa-check-circle' : 'fa-clock'}"></i>
+              ${inv.delivered ? 'Entregada' : 'Pendiente'}
+            </button>
+          </div>
+          <div style="font-size:0.85rem; font-weight:600;">${inv.clientName}</div>
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted);">
+            <span>Monto: $${Number(inv.amountReturn).toLocaleString()}</span>
+            <span>${inv.dateIssued.split(' ')[0]}</span>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    /* INICIALIZACIÓN */
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      renderSidebarMenu();
+      renderAuditInvoiceList();
+    });
+  </script>
+</body>
+</html>
